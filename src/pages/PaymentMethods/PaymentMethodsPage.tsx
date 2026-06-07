@@ -14,12 +14,12 @@ export default function PaymentMethodsPage() {
           style={{ backgroundColor: '#3ecf8e' }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
-          + Nuevo método
+          + Nuevo
         </button>
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {mockMetodosPago.map(m => (
           <div
             key={m.idMetodoPago}

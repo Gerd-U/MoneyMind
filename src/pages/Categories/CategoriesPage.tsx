@@ -22,7 +22,7 @@ export default function CategoriasPage() {
           style={{ backgroundColor: '#3ecf8e' }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
-          + Nueva categoría
+          + Nueva
         </button>
       </div>
 
@@ -49,8 +49,8 @@ export default function CategoriasPage() {
         ))}
       </div>
 
-      {/* Grid de categorías */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {categoriasFiltradas.map(c => {
           const tipo = mockTiposMovimiento.find(t => t.idTipoMovimiento === c.idTipoMovimiento)
           const esIngreso = c.idTipoMovimiento === 1
@@ -61,7 +61,6 @@ export default function CategoriasPage() {
               style={{ backgroundColor: '#101D32' }}
               className="rounded-xl p-5 flex flex-col gap-3"
             >
-              {/* Badge tipo */}
               <span
                 style={{
                   backgroundColor: esIngreso ? '#3ecf8e20' : '#f0706020',
@@ -72,13 +71,9 @@ export default function CategoriasPage() {
                 {tipo?.nombreTipo ?? '—'}
               </span>
 
-              {/* Nombre */}
               <p className="text-white font-semibold text-base">{c.nombreCategoria}</p>
-
-              {/* Descripción */}
               <p className="text-slate-400 text-sm">{c.descripcion}</p>
 
-              {/* Estado */}
               <div className="flex items-center justify-between pt-2 border-t border-white/5">
                 <span className="text-slate-500 text-xs">
                   {c.estadoCategoria ? 'Activa' : 'Inactiva'}

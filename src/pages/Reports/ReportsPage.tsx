@@ -40,7 +40,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-6 flex flex-col gap-2">
           <span className="text-slate-400 text-sm">Total ingresos</span>
           <span style={{ color: '#3ecf8e' }} className="text-2xl font-bold">{formatMonto(totalIngresos)}</span>
@@ -58,8 +58,8 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Bar chart */}
         <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-6 flex flex-col gap-4">
@@ -92,8 +92,8 @@ export default function ReportsPage() {
         {/* Pie chart */}
         <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-6 flex flex-col gap-4">
           <h2 className="text-white font-semibold text-base">Egresos por categoría</h2>
-          <div className="flex items-center gap-6">
-            <ResponsiveContainer width="50%" height={200}>
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
                   data={datosPorCategoria}
@@ -116,7 +116,7 @@ export default function ReportsPage() {
             </ResponsiveContainer>
 
             {/* Leyenda */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 w-full sm:w-auto">
               {datosPorCategoria.map((d, index) => (
                 <div key={d.name} className="flex items-center gap-2">
                   <div

@@ -46,7 +46,7 @@ export default function MovimientosPage() {
           style={{ backgroundColor: '#3ecf8e' }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
-          + Nuevo movimiento
+          + Nuevo
         </button>
       </div>
 
@@ -73,8 +73,8 @@ export default function MovimientosPage() {
         ))}
       </div>
 
-      {/* Tabla */}
-      <div style={{ backgroundColor: '#101D32' }} className="rounded-xl overflow-hidden">
+      {/* Tabla — desktop */}
+      <div style={{ backgroundColor: '#101D32' }} className="rounded-xl overflow-hidden hidden md:block">
         <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid #1e3a5f' }}>
@@ -124,6 +124,35 @@ export default function MovimientosPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Cards — mobile */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {movimientosFiltrados.map(m => {
+          const categoria = mockCategorias.find(c => c.idCategoria === m.idCategoria)
+          const metodo = mockMetodosPago.find(mp => mp.idMetodoPago === m.idMetodoPago)
+          const esIngreso = categoria?.idTipoMovimiento === 1
+
+          return (
+            <div
+              key={m.idMovimiento}
+              style={{ backgroundColor: '#101D32' }}
+              className="rounded-xl p-4 flex items-center justify-between"
+            >
+              <div className="flex flex-col gap-1">
+                <span className="text-white text-sm font-medium">{m.descripcion}</span>
+                <span className="text-slate-500 text-xs">{categoria?.nombreCategoria} · {metodo?.nombreMetodo}</span>
+                <span className="text-slate-600 text-xs">{m.fechaMovimiento}</span>
+              </div>
+              <span
+                style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
+                className="text-sm font-semibold"
+              >
+                {esIngreso ? '+' : '-'}{formatMonto(m.monto)}
+              </span>
+            </div>
+          )
+        })}
       </div>
 
       {/* Modal */}
