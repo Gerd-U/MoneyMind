@@ -1,10 +1,39 @@
+import { useState } from 'react'
+
+interface UserProfile {
+  nombre: string
+  apellido: string
+  correo: string
+  fechaRegistro: string
+  estadoUsuario: boolean
+}
+
 export default function ProfilePage() {
-  const user = {
+  const [user, setUser] = useState<UserProfile>({
     nombre: 'Gerald',
     apellido: 'Mora',
     correo: 'gerald@moneymind.com',
     fechaRegistro: '2026-01-15',
     estadoUsuario: true,
+  })
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [form, setForm] = useState(user)
+
+  const handleSave = () => {
+    setUser(form)
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setForm(user)
+    setIsEditing(false)
+  }
+
+  const inputStyle = {
+    backgroundColor: '#0D1520',
+    border: '1px solid #1e3a5f',
+    color: 'white',
   }
 
   return (
@@ -12,8 +41,8 @@ export default function ProfilePage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-white text-2xl font-bold">Profile</h1>
-        <p className="text-slate-400 text-sm mt-1">Manage your account information</p>
+        <h1 className="text-white text-2xl font-bold">Perfil</h1>
+        <p className="text-slate-400 text-sm mt-1">Administrá la información de tu cuenta</p>
       </div>
 
       {/* Profile card */}
@@ -23,7 +52,7 @@ export default function ProfilePage() {
         <div className="flex items-center gap-5">
           <div
             style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
-            className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
+            className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold flex-shrink-0"
           >
             {user.nombre[0]}{user.apellido[0]}
           </div>
@@ -35,7 +64,7 @@ export default function ProfilePage() {
             style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
             className="ml-auto text-xs font-medium px-2 py-1 rounded-md"
           >
-            Active
+            Activo
           </span>
         </div>
 
@@ -43,43 +72,98 @@ export default function ProfilePage() {
         <div style={{ borderColor: '#1e3a5f' }} className="border-t" />
 
         {/* Fields */}
-        <div className="grid grid-cols-2 gap-6">
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 text-xs">First name</span>
-            <span className="text-white text-sm font-medium">{user.nombre}</span>
+        {isEditing ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-slate-500 text-xs">Nombre</label>
+              <input
+                type="text"
+                value={form.nombre}
+                onChange={e => setForm({ ...form, nombre: e.target.value })}
+                style={inputStyle}
+                className="rounded-lg px-3 py-2.5 text-sm outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-slate-500 text-xs">Apellido</label>
+              <input
+                type="text"
+                value={form.apellido}
+                onChange={e => setForm({ ...form, apellido: e.target.value })}
+                style={inputStyle}
+                className="rounded-lg px-3 py-2.5 text-sm outline-none"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <label className="text-slate-500 text-xs">Correo</label>
+              <input
+                type="email"
+                value={form.correo}
+                onChange={e => setForm({ ...form, correo: e.target.value })}
+                style={inputStyle}
+                className="rounded-lg px-3 py-2.5 text-sm outline-none"
+              />
+            </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 text-xs">Last name</span>
-            <span className="text-white text-sm font-medium">{user.apellido}</span>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-1">
+              <span className="text-slate-500 text-xs">Nombre</span>
+              <span className="text-white text-sm font-medium">{user.nombre}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-slate-500 text-xs">Apellido</span>
+              <span className="text-white text-sm font-medium">{user.apellido}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-slate-500 text-xs">Correo</span>
+              <span className="text-white text-sm font-medium">{user.correo}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-slate-500 text-xs">Miembro desde</span>
+              <span className="text-white text-sm font-medium">{user.fechaRegistro}</span>
+            </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 text-xs">Email</span>
-            <span className="text-white text-sm font-medium">{user.correo}</span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-slate-500 text-xs">Member since</span>
-            <span className="text-white text-sm font-medium">{user.fechaRegistro}</span>
-          </div>
-        </div>
+        )}
 
         {/* Divider */}
         <div style={{ borderColor: '#1e3a5f' }} className="border-t" />
 
         {/* Actions */}
-        <div className="flex gap-3">
-          <button
-            style={{ backgroundColor: '#3ecf8e' }}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
-          >
-            Edit profile
-          </button>
-          <button
-            style={{ borderColor: '#1e3a5f' }}
-            className="px-4 py-2 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
-          >
-            Change password
-          </button>
-        </div>
+        {isEditing ? (
+          <div className="flex gap-3">
+            <button
+              onClick={handleSave}
+              style={{ backgroundColor: '#3ecf8e' }}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
+            >
+              Guardar cambios
+            </button>
+            <button
+              onClick={handleCancel}
+              style={{ borderColor: '#1e3a5f' }}
+              className="px-4 py-2 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsEditing(true)}
+              style={{ backgroundColor: '#3ecf8e' }}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
+            >
+              Editar perfil
+            </button>
+            <button
+              style={{ borderColor: '#1e3a5f' }}
+              className="px-4 py-2 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
+            >
+              Cambiar contraseña
+            </button>
+          </div>
+        )}
 
       </div>
     </div>
