@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { mockMovimientos, mockCategorias, mockMetodosPago } from '../../data/mockData'
+import { mockCategorias, mockMetodosPago } from '../../data/mockData'
+import { useMovementStore } from '../../store/MovementStore'
 import type { Movimiento } from '../../types'
 import Modal from '../../components/common/Modal'
 import MovementForm from '../../components/common/MovementForm'
@@ -10,9 +11,10 @@ const formatMonto = (monto: number) =>
 export default function MovimientosPage() {
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'ingreso' | 'egreso'>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [movimientos, setMovimientos] = useState<Movimiento[]>(mockMovimientos)
 
-  const movimientosFiltrados = movimientos
+  const { movements, add, remove } = useMovementStore()
+
+  const movimientosFiltrados = movements
     .filter(m => {
       const categoria = mockCategorias.find(c => c.idCategoria === m.idCategoria)
       if (filtroTipo === 'ingreso') return categoria?.idTipoMovimiento === 1
@@ -22,13 +24,7 @@ export default function MovimientosPage() {
     .sort((a, b) => new Date(b.fechaMovimiento).getTime() - new Date(a.fechaMovimiento).getTime())
 
   const handleNewMovement = (data: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => {
-    const nuevo: Movimiento = {
-      ...data,
-      idMovimiento: movimientos.length + 1,
-      idUsuario: 1,
-      fechaRegistro: new Date().toISOString(),
-    }
-    setMovimientos([...movimientos, nuevo])
+    add(data)
     setIsModalOpen(false)
   }
 
@@ -83,6 +79,7 @@ export default function MovimientosPage() {
               <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Método</th>
               <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Fecha</th>
               <th className="text-right text-slate-400 text-xs font-medium px-6 py-4">Monto</th>
+              <th className="text-right text-slate-400 text-xs font-medium px-6 py-4"></th>
             </tr>
           </thead>
           <tbody>
@@ -119,6 +116,14 @@ export default function MovimientosPage() {
                       {esIngreso ? '+' : '-'}{formatMonto(m.monto)}
                     </span>
                   </td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => remove(m.idMovimiento)}
+                      className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
                 </tr>
               )
             })}
@@ -144,12 +149,20 @@ export default function MovimientosPage() {
                 <span className="text-slate-500 text-xs">{categoria?.nombreCategoria} · {metodo?.nombreMetodo}</span>
                 <span className="text-slate-600 text-xs">{m.fechaMovimiento}</span>
               </div>
-              <span
-                style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
-                className="text-sm font-semibold"
-              >
-                {esIngreso ? '+' : '-'}{formatMonto(m.monto)}
-              </span>
+              <div className="flex flex-col items-end gap-2">
+                <span
+                  style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
+                  className="text-sm font-semibold"
+                >
+                  {esIngreso ? '+' : '-'}{formatMonto(m.monto)}
+                </span>
+                <button
+                  onClick={() => remove(m.idMovimiento)}
+                  className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           )
         })}
