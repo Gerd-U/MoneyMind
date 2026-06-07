@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { mockCategorias, mockMetodosPago } from '../../data/mockData'
+import { useCategoryStore } from '../../store/CategoryStore'
+import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import type { Movimiento } from '../../types'
 
 interface MovementFormProps {
@@ -8,6 +9,9 @@ interface MovementFormProps {
 }
 
 export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) {
+  const { categories } = useCategoryStore()
+  const { paymentMethods } = usePaymentMethodStore()
+
   const [form, setForm] = useState({
     idCategoria: 0,
     idMetodoPago: 0,
@@ -72,11 +76,13 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
           className="rounded-lg px-3 py-2.5 text-sm outline-none"
         >
           <option value={0} disabled>Seleccioná una categoría</option>
-          {mockCategorias.map(c => (
-            <option key={c.idCategoria} value={c.idCategoria}>
-              {c.nombreCategoria}
-            </option>
-          ))}
+          {categories
+            .filter(c => c.estadoCategoria)
+            .map(c => (
+              <option key={c.idCategoria} value={c.idCategoria}>
+                {c.nombreCategoria}
+              </option>
+            ))}
         </select>
       </div>
 
@@ -90,7 +96,7 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
           className="rounded-lg px-3 py-2.5 text-sm outline-none"
         >
           <option value={0} disabled>Seleccioná un método</option>
-          {mockMetodosPago.map(m => (
+          {paymentMethods.map(m => (
             <option key={m.idMetodoPago} value={m.idMetodoPago}>
               {m.nombreMetodo}
             </option>
