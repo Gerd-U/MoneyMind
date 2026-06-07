@@ -7,14 +7,14 @@ export default function PaymentMethodsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white text-2xl font-bold">Payment Methods</h1>
-          <p className="text-slate-400 text-sm mt-1">{mockMetodosPago.length} methods registered</p>
+          <h1 className="text-white text-2xl font-bold">Métodos de pago</h1>
+          <p className="text-slate-400 text-sm mt-1">{mockMetodosPago.length} métodos registrados</p>
         </div>
         <button
           style={{ backgroundColor: '#3ecf8e' }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
-          + New method
+          + Nuevo método
         </button>
       </div>
 
@@ -32,7 +32,7 @@ export default function PaymentMethodsPage() {
                 style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
                 className="text-xs font-medium px-2 py-1 rounded-md"
               >
-                Active
+                Activo
               </span>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-white/5">

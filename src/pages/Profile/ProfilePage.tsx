@@ -12,8 +12,8 @@ export default function ProfilePage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-white text-2xl font-bold">Profile</h1>
-        <p className="text-slate-400 text-sm mt-1">Manage your account information</p>
+        <h1 className="text-white text-2xl font-bold">Perfil</h1>
+        <p className="text-slate-400 text-sm mt-1">Administrá la información de tu cuenta</p>
       </div>
 
       {/* Profile card */}
@@ -35,7 +35,7 @@ export default function ProfilePage() {
             style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
             className="ml-auto text-xs font-medium px-2 py-1 rounded-md"
           >
-            Active
+            Activo
           </span>
         </div>
 
@@ -45,19 +45,19 @@ export default function ProfilePage() {
         {/* Fields */}
         <div className="grid grid-cols-2 gap-6">
           <div className="flex flex-col gap-1">
-            <span className="text-slate-500 text-xs">First name</span>
+            <span className="text-slate-500 text-xs">Nombre</span>
             <span className="text-white text-sm font-medium">{user.nombre}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-slate-500 text-xs">Last name</span>
+            <span className="text-slate-500 text-xs">Apellido</span>
             <span className="text-white text-sm font-medium">{user.apellido}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-slate-500 text-xs">Email</span>
+            <span className="text-slate-500 text-xs">Correo</span>
             <span className="text-white text-sm font-medium">{user.correo}</span>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-slate-500 text-xs">Member since</span>
+            <span className="text-slate-500 text-xs">Miembro desde</span>
             <span className="text-white text-sm font-medium">{user.fechaRegistro}</span>
           </div>
         </div>
@@ -71,13 +71,13 @@ export default function ProfilePage() {
             style={{ backgroundColor: '#3ecf8e' }}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
           >
-            Edit profile
+            Editar perfil
           </button>
           <button
             style={{ borderColor: '#1e3a5f' }}
             className="px-4 py-2 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
           >
-            Change password
+            Cambiar contraseña
           </button>
         </div>
 
