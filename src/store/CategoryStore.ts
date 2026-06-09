@@ -1,34 +1,95 @@
 import { create } from 'zustand'
-import { mockCategorias } from '../data/mockData'
-import type { Categoria } from '../types'
+import type { CategoryRequest } from '../models/requests/CategoryRequest'
+import type { CategoryResponse } from '../models/responses/CategoryResponse'
+import type { MovementTypeResponse } from '../models/responses/MovementTypeResponse'
+import {
+  createCategory,
+  deleteCategory,
+  getCategories,
+  updateCategory,
+} from '../services/CategoryService'
+import { getMovementTypes } from '../services/MovementTypeService'
 
 interface CategoryStore {
-  categories: Categoria[]
-  add: (category: Omit<Categoria, 'idCategoria'>) => void
-  remove: (id: number) => void
-  toggleStatus: (id: number) => void
+  categories: CategoryResponse[]
+  movementTypes: MovementTypeResponse[]
+  isLoading: boolean
+  error: string | null
+  load: () => Promise<void>
+  add: (category: CategoryRequest) => Promise<void>
+  remove: (id: number) => Promise<void>
+  toggleStatus: (id: number) => Promise<void>
 }
 
 export const useCategoryStore = create<CategoryStore>((set, get) => ({
-  categories: mockCategorias,
+  categories: [],
+  movementTypes: [],
+  isLoading: false,
+  error: null,
 
-  add: (data) => {
-    const newCategory: Categoria = {
-      ...data,
-      idCategoria: get().categories.length + 1,
+  load: async () => {
+    try {
+      set({ isLoading: true, error: null })
+      const [categories, movementTypes] = await Promise.all([
+        getCategories(),
+        getMovementTypes(),
+      ])
+      set({ categories, movementTypes })
+    } catch (error) {
+      console.error('Error en CategoryStore:', error)
+      set({ error: 'No se pudieron cargar las categorías' })
+    } finally {
+      set({ isLoading: false })
     }
-    set(state => ({ categories: [...state.categories, newCategory] }))
   },
 
-  remove: (id) => {
-    set(state => ({ categories: state.categories.filter(c => c.idCategoria !== id) }))
+  add: async (data) => {
+    try {
+      set({ error: null })
+      const newCategory = await createCategory(data)
+      set(state => ({ categories: [...state.categories, newCategory] }))
+    } catch (error) {
+      console.error('Error en CategoryStore:', error)
+      set({ error: 'No se pudo crear la categoría' })
+    }
   },
 
-  toggleStatus: (id) => {
-    set(state => ({
-      categories: state.categories.map(c =>
-        c.idCategoria === id ? { ...c, estadoCategoria: !c.estadoCategoria } : c
-      )
-    }))
+  remove: async (id) => {
+    try {
+      set({ error: null })
+      await deleteCategory(id)
+      set(state => ({ categories: state.categories.filter(c => c.idCategory !== id) }))
+    } catch (error) {
+      console.error('Error en CategoryStore:', error)
+      set({ error: 'No se pudo eliminar la categoría' })
+    }
+  },
+
+  toggleStatus: async (id) => {
+    const category = get().categories.find(c => c.idCategory === id)
+
+    if (!category) {
+      set({ error: 'Categoría no encontrada' })
+      return
+    }
+
+    try {
+      set({ error: null })
+      const updatedCategory = await updateCategory(id, {
+        idMovementType: category.idMovementType,
+        categoryName: category.categoryName,
+        description: category.description,
+        active: !category.active,
+      })
+
+      set(state => ({
+        categories: state.categories.map(c =>
+          c.idCategory === id ? updatedCategory : c
+        ),
+      }))
+    } catch (error) {
+      console.error('Error en CategoryStore:', error)
+      set({ error: 'No se pudo actualizar la categoría' })
+    }
   },
 }))
