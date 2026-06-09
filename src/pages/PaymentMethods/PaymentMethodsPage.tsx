@@ -1,18 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import Modal from '../../components/common/Modal'
 
 export default function PaymentMethodsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [nombreMetodo, setNombreMetodo] = useState('')
+  const [methodName, setMethodName] = useState('')
 
-  const { paymentMethods, add, remove } = usePaymentMethodStore()
+  const {
+    paymentMethods,
+    isLoading,
+    error,
+    load,
+    add,
+    remove,
+  } = usePaymentMethodStore()
 
-  const handleSubmit = () => {
-    if (!nombreMetodo) return
-    add({ nombreMetodo })
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const handleSubmit = async () => {
+    if (!methodName.trim()) return
+
+    await add({ methodName: methodName.trim() })
     setIsModalOpen(false)
-    setNombreMetodo('')
+    setMethodName('')
   }
 
   const inputStyle = {
@@ -39,16 +51,24 @@ export default function PaymentMethodsPage() {
         </button>
       </div>
 
+      {isLoading && (
+        <p className="text-slate-400 text-sm">Cargando métodos de pago...</p>
+      )}
+
+      {error && (
+        <p className="text-red-400 text-sm">{error}</p>
+      )}
+
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {paymentMethods.map(m => (
           <div
-            key={m.idMetodoPago}
+            key={m.idPaymentMethod}
             style={{ backgroundColor: '#101D32' }}
             className="rounded-xl p-5 flex flex-col gap-4"
           >
             <div className="flex items-center justify-between">
-              <p className="text-white font-semibold text-base">{m.nombreMetodo}</p>
+              <p className="text-white font-semibold text-base">{m.methodName}</p>
               <span
                 style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
                 className="text-xs font-medium px-2 py-1 rounded-md"
@@ -57,9 +77,9 @@ export default function PaymentMethodsPage() {
               </span>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-white/5">
-              <span className="text-slate-500 text-xs">ID #{m.idMetodoPago}</span>
+              <span className="text-slate-500 text-xs">ID #{m.idPaymentMethod}</span>
               <button
-                onClick={() => remove(m.idMetodoPago)}
+                onClick={() => void remove(m.idPaymentMethod)}
                 className="text-slate-600 hover:text-red-400 transition-colors text-xs"
               >
                 Eliminar
@@ -80,8 +100,8 @@ export default function PaymentMethodsPage() {
             <label className="text-slate-400 text-xs">Nombre del método</label>
             <input
               type="text"
-              value={nombreMetodo}
-              onChange={e => setNombreMetodo(e.target.value)}
+              value={methodName}
+              onChange={e => setMethodName(e.target.value)}
               placeholder="ej. PayPal"
               style={inputStyle}
               className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
@@ -90,7 +110,7 @@ export default function PaymentMethodsPage() {
 
           <div className="flex gap-3 pt-2">
             <button
-              onClick={handleSubmit}
+              onClick={() => void handleSubmit()}
               style={{ backgroundColor: '#3ecf8e' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
             >
