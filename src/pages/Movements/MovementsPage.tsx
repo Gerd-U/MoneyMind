@@ -44,7 +44,6 @@ export default function MovementsPage() {
   }
 
   if (isLoading) return <LoadingSpinner />
-  if (error) return <ErrorMessage message={error} onRetry={() => void load(startDate, endDate)} />
 
   return (
     <div className="flex flex-col gap-8">
@@ -66,125 +65,142 @@ export default function MovementsPage() {
         </button>
       </div>
 
+      {/* Error no bloqueante */}
+      {error && <ErrorMessage message={error} onRetry={() => void load(startDate, endDate)} />}
+
       {/* Filtros */}
-      <div className="flex gap-2">
-        {([
-          { label: 'Todos', value: 'todos' },
-          { label: 'Ingresos', value: 'ingreso' },
-          { label: 'Egresos', value: 'egreso' },
-        ] as const).map(op => (
-          <button
-            key={op.value}
-            onClick={() => setFiltroTipo(op.value)}
-            style={{
-              backgroundColor: filtroTipo === op.value ? '#101D32' : 'transparent',
-              borderColor: filtroTipo === op.value ? '#1e3a5f' : '#1e293b',
-            }}
-            className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
-          >
-            <span style={{ color: filtroTipo === op.value ? 'white' : '#64748b' }}>
-              {op.label}
-            </span>
-          </button>
-        ))}
-      </div>
+      {!error && (
+        <div className="flex gap-2">
+          {([
+            { label: 'Todos', value: 'todos' },
+            { label: 'Ingresos', value: 'ingreso' },
+            { label: 'Egresos', value: 'egreso' },
+          ] as const).map(op => (
+            <button
+              key={op.value}
+              onClick={() => setFiltroTipo(op.value)}
+              style={{
+                backgroundColor: filtroTipo === op.value ? '#101D32' : 'transparent',
+                borderColor: filtroTipo === op.value ? '#1e3a5f' : '#1e293b',
+              }}
+              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
+            >
+              <span style={{ color: filtroTipo === op.value ? 'white' : '#64748b' }}>
+                {op.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Vacío */}
+      {!error && movements.length === 0 && (
+        <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-10 flex flex-col items-center gap-3">
+          <p className="text-white font-medium text-sm">No hay movimientos registrados</p>
+          <p className="text-slate-500 text-xs text-center">Registrá tu primer movimiento usando el botón de arriba.</p>
+        </div>
+      )}
 
       {/* Tabla — desktop */}
-      <div style={{ backgroundColor: '#101D32' }} className="rounded-xl overflow-hidden hidden md:block">
-        <table className="w-full">
-          <thead>
-            <tr style={{ borderBottom: '1px solid #1e3a5f' }}>
-              <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Descripción</th>
-              <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Categoría</th>
-              <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Método</th>
-              <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Fecha</th>
-              <th className="text-right text-slate-400 text-xs font-medium px-6 py-4">Monto</th>
-              <th className="text-right text-slate-400 text-xs font-medium px-6 py-4"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {movimientosFiltrados.map((m, index) => {
-              const categoria = categories.find(c => c.idCategory === m.idCategory)
-              const esIngreso = categoria?.idMovementType === 1
+      {!error && movements.length > 0 && (
+        <div style={{ backgroundColor: '#101D32' }} className="rounded-xl overflow-hidden hidden md:block">
+          <table className="w-full">
+            <thead>
+              <tr style={{ borderBottom: '1px solid #1e3a5f' }}>
+                <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Descripción</th>
+                <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Categoría</th>
+                <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Método</th>
+                <th className="text-left text-slate-400 text-xs font-medium px-6 py-4">Fecha</th>
+                <th className="text-right text-slate-400 text-xs font-medium px-6 py-4">Monto</th>
+                <th className="text-right text-slate-400 text-xs font-medium px-6 py-4"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {movimientosFiltrados.map((m, index) => {
+                const categoria = categories.find(c => c.idCategory === m.idCategory)
+                const esIngreso = categoria?.idMovementType === 1
 
-              return (
-                <tr
-                  key={m.idTransaction}
-                  style={{ borderBottom: index < movimientosFiltrados.length - 1 ? '1px solid #0D1520' : 'none' }}
-                  className="hover:bg-white/5 transition-colors"
-                >
-                  <td className="px-6 py-4 text-white text-sm">{m.description}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      style={{
-                        backgroundColor: esIngreso ? '#3ecf8e20' : '#f0706020',
-                        color: esIngreso ? '#3ecf8e' : '#f07060',
-                      }}
-                      className="text-xs font-medium px-2 py-1 rounded-md"
-                    >
-                      {m.categoryName}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-400 text-sm">{m.paymentMethodName}</td>
-                  <td className="px-6 py-4 text-slate-400 text-sm">{m.transactionDate}</td>
-                  <td className="px-6 py-4 text-right">
-                    <span
-                      style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
-                      className="text-sm font-semibold"
-                    >
-                      {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => void remove(m.idTransaction)}
-                      className="text-slate-600 hover:text-red-400 transition-colors text-xs"
-                    >
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+                return (
+                  <tr
+                    key={m.idTransaction}
+                    style={{ borderBottom: index < movimientosFiltrados.length - 1 ? '1px solid #0D1520' : 'none' }}
+                    className="hover:bg-white/5 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-white text-sm">{m.description}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        style={{
+                          backgroundColor: esIngreso ? '#3ecf8e20' : '#f0706020',
+                          color: esIngreso ? '#3ecf8e' : '#f07060',
+                        }}
+                        className="text-xs font-medium px-2 py-1 rounded-md"
+                      >
+                        {m.categoryName}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-400 text-sm">{m.paymentMethodName}</td>
+                    <td className="px-6 py-4 text-slate-400 text-sm">{m.transactionDate}</td>
+                    <td className="px-6 py-4 text-right">
+                      <span
+                        style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
+                        className="text-sm font-semibold"
+                      >
+                        {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => void remove(m.idTransaction)}
+                        className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Cards — mobile */}
-      <div className="flex flex-col gap-3 md:hidden">
-        {movimientosFiltrados.map(m => {
-          const categoria = categories.find(c => c.idCategory === m.idCategory)
-          const esIngreso = categoria?.idMovementType === 1
+      {!error && movements.length > 0 && (
+        <div className="flex flex-col gap-3 md:hidden">
+          {movimientosFiltrados.map(m => {
+            const categoria = categories.find(c => c.idCategory === m.idCategory)
+            const esIngreso = categoria?.idMovementType === 1
 
-          return (
-            <div
-              key={m.idTransaction}
-              style={{ backgroundColor: '#101D32' }}
-              className="rounded-xl p-4 flex items-center justify-between"
-            >
-              <div className="flex flex-col gap-1">
-                <span className="text-white text-sm font-medium">{m.description}</span>
-                <span className="text-slate-500 text-xs">{m.categoryName} · {m.paymentMethodName}</span>
-                <span className="text-slate-600 text-xs">{m.transactionDate}</span>
+            return (
+              <div
+                key={m.idTransaction}
+                style={{ backgroundColor: '#101D32' }}
+                className="rounded-xl p-4 flex items-center justify-between"
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="text-white text-sm font-medium">{m.description}</span>
+                  <span className="text-slate-500 text-xs">{m.categoryName} · {m.paymentMethodName}</span>
+                  <span className="text-slate-600 text-xs">{m.transactionDate}</span>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span
+                    style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
+                    className="text-sm font-semibold"
+                  >
+                    {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
+                  </span>
+                  <button
+                    onClick={() => void remove(m.idTransaction)}
+                    className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <span
-                  style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
-                  className="text-sm font-semibold"
-                >
-                  {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
-                </span>
-                <button
-                  onClick={() => void remove(m.idTransaction)}
-                  className="text-slate-600 hover:text-red-400 transition-colors text-xs"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Modal */}
       <Modal

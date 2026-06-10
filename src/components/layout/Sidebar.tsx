@@ -1,13 +1,14 @@
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { label: "Dashboard", path: "/" },
-  { label: "Movimientos", path: "/movimientos" },
-  { label: "Reportes", path: "/reportes" },
-  { label: "Categorías", path: "/categorias" },
-  { label: "Métodos de pago", path: "/metodos-pago" },
-  { label: "Perfil", path: "/perfil" },
-];
+  { label: 'Dashboard', path: '/' },
+  { label: 'Movimientos', path: '/movimientos' },
+  { label: 'Reportes', path: '/reportes' },
+  { label: 'Presupuestos', path: '/budgets' },
+  { label: 'Categorías', path: '/categorias' },
+  { label: 'Métodos de pago', path: '/metodos-pago' },
+  { label: 'Perfil', path: '/perfil' },
+]
 
 interface SidebarProps {
   onClose: () => void;

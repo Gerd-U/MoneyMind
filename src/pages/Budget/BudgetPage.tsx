@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useBudgetStore } from '../../store/BudgetStore'
 import { useCategoryStore } from '../../store/CategoryStore'
 import Modal from '../../components/common/Modal'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
 
 const formatMonto = (monto: number) =>
   new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', maximumFractionDigits: 0 }).format(monto)
@@ -18,8 +20,8 @@ export default function BudgetPage() {
     year: now.getFullYear(),
   })
 
-  const { budgets, isLoading, error, load, add, edit, remove } = useBudgetStore()
-  const { categories, load: loadCategories } = useCategoryStore()
+  const { budgets, isLoading: loadingBudgets, error: errorBudgets, load, add, edit, remove } = useBudgetStore()
+  const { categories, isLoading: loadingCategories, load: loadCategories } = useCategoryStore()
 
   useEffect(() => {
     void load(now.getMonth() + 1, now.getFullYear())
@@ -28,7 +30,6 @@ export default function BudgetPage() {
 
   const handleSubmit = async () => {
     if (!form.idCategory || !form.limitAmount) return
-
     if (editingId !== null) {
       await edit(editingId, {
         idCategory: form.idCategory,
@@ -44,7 +45,6 @@ export default function BudgetPage() {
         year: form.year,
       })
     }
-
     setIsModalOpen(false)
     setEditingId(null)
     setForm({ idCategory: 0, limitAmount: '', month: now.getMonth() + 1, year: now.getFullYear() })
@@ -67,6 +67,8 @@ export default function BudgetPage() {
     color: 'white',
   }
 
+  if (loadingBudgets || loadingCategories) return <LoadingSpinner />
+
   return (
     <div className="flex flex-col gap-8">
 
@@ -85,31 +87,41 @@ export default function BudgetPage() {
         </button>
       </div>
 
-      {isLoading && <p className="text-slate-400 text-sm">Cargando presupuestos...</p>}
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {/* Error — solo del store de presupuestos */}
+      {errorBudgets && (
+        <ErrorMessage
+          message={errorBudgets}
+          onRetry={() => void load(now.getMonth() + 1, now.getFullYear())}
+        />
+      )}
+
+      {/* Vacío */}
+      {!errorBudgets && budgets.length === 0 && (
+        <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-10 flex flex-col items-center gap-3">
+          <p className="text-white font-medium text-sm">No hay presupuestos registrados</p>
+          <p className="text-slate-500 text-xs text-center">Creá un presupuesto para controlar tus gastos por categoría.</p>
+        </div>
+      )}
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {budgets.map(b => {
-          return (
+      {!errorBudgets && budgets.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {budgets.map(b => (
             <div
               key={b.idBudget}
               style={{ backgroundColor: '#101D32' }}
               className="rounded-xl p-5 flex flex-col gap-3"
             >
               <p className="text-white font-semibold text-base">{b.categoryName}</p>
-
               <div className="flex justify-between text-sm">
                 <span className="text-slate-400">Límite</span>
                 <span style={{ color: '#3ecf8e' }} className="font-semibold">
                   {formatMonto(b.limitAmount)}
                 </span>
               </div>
-
               <div className="flex justify-between text-xs text-slate-500">
                 <span>Mes {b.month} / {b.year}</span>
               </div>
-
               <div className="flex items-center justify-between pt-2 border-t border-white/5">
                 <button
                   onClick={() => handleEdit(b)}
@@ -125,9 +137,9 @@ export default function BudgetPage() {
                 </button>
               </div>
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Modal */}
       <Modal
@@ -152,7 +164,6 @@ export default function BudgetPage() {
               ))}
             </select>
           </div>
-
           <div className="flex flex-col gap-1.5">
             <label className="text-slate-400 text-xs">Monto límite</label>
             <input
@@ -164,7 +175,6 @@ export default function BudgetPage() {
               className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
             />
           </div>
-
           <div className="flex gap-3">
             <div className="flex flex-col gap-1.5 flex-1">
               <label className="text-slate-400 text-xs">Mes</label>
@@ -189,7 +199,6 @@ export default function BudgetPage() {
               />
             </div>
           </div>
-
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => void handleSubmit()}
