@@ -76,7 +76,7 @@ export default function DashboardPage() {
   const balance = ingresos - egresos
 
   const movimientosRecientes = [...movements]
-    .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
+    .sort((a, b) => new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime())
     .slice(0, 5)
 
   const datosGrafico = [
@@ -136,6 +136,9 @@ export default function DashboardPage() {
         <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-6 flex flex-col gap-5">
           <h2 className="text-white font-semibold text-base">Presupuestos del mes</h2>
           <div className="flex flex-col gap-4">
+            {budgets.length === 0 && (
+              <p className="text-slate-500 text-sm">No hay presupuestos registrados.</p>
+            )}
             {budgets.map(b => {
               const spent = movements
                 .filter(m => m.idCategory === b.idCategory)
@@ -157,12 +160,15 @@ export default function DashboardPage() {
         <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-6 flex flex-col gap-4">
           <h2 className="text-white font-semibold text-base">Movimientos recientes</h2>
           <div className="flex flex-col">
+            {movimientosRecientes.length === 0 && (
+              <p className="text-slate-500 text-sm">No hay movimientos registrados.</p>
+            )}
             {movimientosRecientes.map(m => {
               const categoria = categories.find(c => c.idCategory === m.idCategory)
               const esIngreso = categoria?.idMovementType === 1
 
               return (
-                <div key={m.idTransaction} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                <div key={m.idMovement} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-white text-sm font-medium">{m.description}</span>
                     <span className="text-slate-500 text-xs">{m.categoryName} · {m.paymentMethodName}</span>
@@ -171,7 +177,7 @@ export default function DashboardPage() {
                     <span style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }} className="text-sm font-semibold">
                       {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
                     </span>
-                    <span className="text-slate-500 text-xs">{m.transactionDate}</span>
+                    <span className="text-slate-500 text-xs">{m.movementDate}</span>
                   </div>
                 </div>
               )

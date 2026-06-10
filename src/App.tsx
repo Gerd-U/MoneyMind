@@ -20,12 +20,11 @@ function App() {
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="metodos-pago" element={<PaymentMethodsPage />} />
           <Route path="perfil" element={<ProfilePage />} />
-          <Route path="budgets" element={<BudgetPage />} />
+          <Route path="presupuestos" element={<BudgetPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )
 }
-
 export default App

@@ -36,7 +36,7 @@ export default function MovementsPage() {
       if (filtroTipo === 'egreso') return categoria?.idMovementType === 2
       return true
     })
-    .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
+    .sort((a, b) => new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime())
 
   const handleNewMovement = async (data: Omit<MovementRequest, 'idUsuario'>) => {
     await add({ ...data, idUsuario: 1 })
@@ -122,7 +122,7 @@ export default function MovementsPage() {
 
                 return (
                   <tr
-                    key={m.idTransaction}
+                    key={m.idMovement}
                     style={{ borderBottom: index < movimientosFiltrados.length - 1 ? '1px solid #0D1520' : 'none' }}
                     className="hover:bg-white/5 transition-colors"
                   >
@@ -139,7 +139,7 @@ export default function MovementsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-400 text-sm">{m.paymentMethodName}</td>
-                    <td className="px-6 py-4 text-slate-400 text-sm">{m.transactionDate}</td>
+                    <td className="px-6 py-4 text-slate-400 text-sm">{m.movementDate}</td>
                     <td className="px-6 py-4 text-right">
                       <span
                         style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
@@ -150,7 +150,7 @@ export default function MovementsPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
-                        onClick={() => void remove(m.idTransaction)}
+                        onClick={() => void remove(m.idMovement)}
                         className="text-slate-600 hover:text-red-400 transition-colors text-xs"
                       >
                         Eliminar
@@ -173,14 +173,14 @@ export default function MovementsPage() {
 
             return (
               <div
-                key={m.idTransaction}
+                key={m.idMovement}
                 style={{ backgroundColor: '#101D32' }}
                 className="rounded-xl p-4 flex items-center justify-between"
               >
                 <div className="flex flex-col gap-1">
                   <span className="text-white text-sm font-medium">{m.description}</span>
                   <span className="text-slate-500 text-xs">{m.categoryName} · {m.paymentMethodName}</span>
-                  <span className="text-slate-600 text-xs">{m.transactionDate}</span>
+                  <span className="text-slate-600 text-xs">{m.movementDate}</span>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span
@@ -190,7 +190,7 @@ export default function MovementsPage() {
                     {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
                   </span>
                   <button
-                    onClick={() => void remove(m.idTransaction)}
+                    onClick={() => void remove(m.idMovement)}
                     className="text-slate-600 hover:text-red-400 transition-colors text-xs"
                   >
                     Eliminar

@@ -1,5 +1,5 @@
 export interface MovementResponse {
-  idTransaction: number
+  idMovement: number
   idUsuario: number
   idCategory: number
   categoryName: string
@@ -7,6 +7,6 @@ export interface MovementResponse {
   paymentMethodName: string
   amount: number
   description: string
-  transactionDate: string
+  movementDate: string
   createdAt: string
 }

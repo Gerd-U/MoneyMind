@@ -3,7 +3,7 @@ import type { MovementResponse } from '../models/responses/MovementResponse'
 import type { MovementRequest } from '../models/requests/MovementRequest'
 import { getMovements, createMovement, deleteMovement } from '../services/MovementService'
 
-const ID_USUARIO = 1 // temporal hasta que haya login
+const ID_USUARIO = 1
 
 interface MovementStore {
   movements: MovementResponse[]
@@ -47,7 +47,7 @@ export const useMovementStore = create<MovementStore>((set) => ({
     try {
       set({ error: null })
       await deleteMovement(id)
-      set(state => ({ movements: state.movements.filter(m => m.idTransaction !== id) }))
+      set(state => ({ movements: state.movements.filter(m => m.idMovement !== id) }))
     } catch (error) {
       console.error('Error en MovementStore:', error)
       set({ error: 'No se pudo eliminar el movimiento' })
