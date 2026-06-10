@@ -1,30 +1,50 @@
-import { useState } from 'react'
-import { mockCategorias, mockMetodosPago } from '../../data/mockData'
+import { useEffect, useState } from 'react'
 import { useMovementStore } from '../../store/MovementStore'
-import type { Movimiento } from '../../types'
+import { useCategoryStore } from '../../store/CategoryStore'
+import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import Modal from '../../components/common/Modal'
 import MovementForm from '../../components/common/MovementForm'
+import type { Movimiento } from '../../types'
 
 const formatMonto = (monto: number) =>
   new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', maximumFractionDigits: 0 }).format(monto)
+
+const now = new Date()
+const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-30`
 
 export default function MovimientosPage() {
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'ingreso' | 'egreso'>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const { movements, add, remove } = useMovementStore()
+  const { movements, isLoading, error, load, add, remove } = useMovementStore()
+  const { categories, load: loadCategories } = useCategoryStore()
+  const { paymentMethods, load: loadPaymentMethods } = usePaymentMethodStore()
+
+  useEffect(() => {
+    void load(startDate, endDate)
+    void loadCategories()
+    void loadPaymentMethods()
+  }, [load, loadCategories, loadPaymentMethods])
 
   const movimientosFiltrados = movements
     .filter(m => {
-      const categoria = mockCategorias.find(c => c.idCategoria === m.idCategoria)
-      if (filtroTipo === 'ingreso') return categoria?.idTipoMovimiento === 1
-      if (filtroTipo === 'egreso') return categoria?.idTipoMovimiento === 2
+      const categoria = categories.find(c => c.idCategory === m.idCategory)
+      if (filtroTipo === 'ingreso') return categoria?.idMovementType === 1
+      if (filtroTipo === 'egreso') return categoria?.idMovementType === 2
       return true
     })
-    .sort((a, b) => new Date(b.fechaMovimiento).getTime() - new Date(a.fechaMovimiento).getTime())
+    .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
 
-  const handleNewMovement = (data: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => {
-    add(data)
+  const handleNewMovement = async (data: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => {
+  await add({
+    idUsuario: 1,
+    idCategory: data.idCategoria,
+    idPaymentMethod: data.idMetodoPago,
+    amount: data.monto,
+    description: data.descripcion,
+    transactionDate: data.fechaMovimiento,
+  })
     setIsModalOpen(false)
   }
 
@@ -35,7 +55,9 @@ export default function MovimientosPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-white text-2xl font-bold">Movimientos</h1>
-          <p className="text-slate-400 text-sm mt-1">Junio 2026</p>
+          <p className="text-slate-400 text-sm mt-1">
+            {now.toLocaleString('es-CR', { month: 'long', year: 'numeric' })}
+          </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -45,6 +67,9 @@ export default function MovimientosPage() {
           + Nuevo
         </button>
       </div>
+
+      {isLoading && <p className="text-slate-400 text-sm">Cargando movimientos...</p>}
+      {error && <p className="text-red-400 text-sm">{error}</p>}
 
       {/* Filtros */}
       <div className="flex gap-2">
@@ -84,17 +109,16 @@ export default function MovimientosPage() {
           </thead>
           <tbody>
             {movimientosFiltrados.map((m, index) => {
-              const categoria = mockCategorias.find(c => c.idCategoria === m.idCategoria)
-              const metodo = mockMetodosPago.find(mp => mp.idMetodoPago === m.idMetodoPago)
-              const esIngreso = categoria?.idTipoMovimiento === 1
+              const categoria = categories.find(c => c.idCategory === m.idCategory)
+              const esIngreso = categoria?.idMovementType === 1
 
               return (
                 <tr
-                  key={m.idMovimiento}
+                  key={m.idTransaction}
                   style={{ borderBottom: index < movimientosFiltrados.length - 1 ? '1px solid #0D1520' : 'none' }}
                   className="hover:bg-white/5 transition-colors"
                 >
-                  <td className="px-6 py-4 text-white text-sm">{m.descripcion}</td>
+                  <td className="px-6 py-4 text-white text-sm">{m.description}</td>
                   <td className="px-6 py-4">
                     <span
                       style={{
@@ -103,22 +127,22 @@ export default function MovimientosPage() {
                       }}
                       className="text-xs font-medium px-2 py-1 rounded-md"
                     >
-                      {categoria?.nombreCategoria ?? '—'}
+                      {m.categoryName}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-400 text-sm">{metodo?.nombreMetodo ?? '—'}</td>
-                  <td className="px-6 py-4 text-slate-400 text-sm">{m.fechaMovimiento}</td>
+                  <td className="px-6 py-4 text-slate-400 text-sm">{m.paymentMethodName}</td>
+                  <td className="px-6 py-4 text-slate-400 text-sm">{m.transactionDate}</td>
                   <td className="px-6 py-4 text-right">
                     <span
                       style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
                       className="text-sm font-semibold"
                     >
-                      {esIngreso ? '+' : '-'}{formatMonto(m.monto)}
+                      {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
-                      onClick={() => remove(m.idMovimiento)}
+                      onClick={() => void remove(m.idTransaction)}
                       className="text-slate-600 hover:text-red-400 transition-colors text-xs"
                     >
                       Eliminar
@@ -134,30 +158,29 @@ export default function MovimientosPage() {
       {/* Cards — mobile */}
       <div className="flex flex-col gap-3 md:hidden">
         {movimientosFiltrados.map(m => {
-          const categoria = mockCategorias.find(c => c.idCategoria === m.idCategoria)
-          const metodo = mockMetodosPago.find(mp => mp.idMetodoPago === m.idMetodoPago)
-          const esIngreso = categoria?.idTipoMovimiento === 1
+          const categoria = categories.find(c => c.idCategory === m.idCategory)
+          const esIngreso = categoria?.idMovementType === 1
 
           return (
             <div
-              key={m.idMovimiento}
+              key={m.idTransaction}
               style={{ backgroundColor: '#101D32' }}
               className="rounded-xl p-4 flex items-center justify-between"
             >
               <div className="flex flex-col gap-1">
-                <span className="text-white text-sm font-medium">{m.descripcion}</span>
-                <span className="text-slate-500 text-xs">{categoria?.nombreCategoria} · {metodo?.nombreMetodo}</span>
-                <span className="text-slate-600 text-xs">{m.fechaMovimiento}</span>
+                <span className="text-white text-sm font-medium">{m.description}</span>
+                <span className="text-slate-500 text-xs">{m.categoryName} · {m.paymentMethodName}</span>
+                <span className="text-slate-600 text-xs">{m.transactionDate}</span>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span
                   style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
                   className="text-sm font-semibold"
                 >
-                  {esIngreso ? '+' : '-'}{formatMonto(m.monto)}
+                  {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
                 </span>
                 <button
-                  onClick={() => remove(m.idMovimiento)}
+                  onClick={() => void remove(m.idTransaction)}
                   className="text-slate-600 hover:text-red-400 transition-colors text-xs"
                 >
                   Eliminar

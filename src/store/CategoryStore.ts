@@ -8,7 +8,7 @@ import {
   getCategories,
   updateCategory,
 } from '../services/CategoryService'
-import { getMovementTypes } from '../services/MovementTypeService'
+import { getAllMovementTypes } from '../services/MovementTypeService'
 
 interface CategoryStore {
   categories: CategoryResponse[]
@@ -32,7 +32,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
       set({ isLoading: true, error: null })
       const [categories, movementTypes] = await Promise.all([
         getCategories(),
-        getMovementTypes(),
+        getAllMovementTypes(),
       ])
       set({ categories, movementTypes })
     } catch (error) {
