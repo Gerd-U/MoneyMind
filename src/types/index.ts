@@ -52,3 +52,18 @@ export interface Presupuesto {
   anio: number
   fechaCreacion: string
 }
+
+// USER RESPONSE 
+export interface UserResponse {
+  firstName: string
+  lastName: string
+  email: string
+  registrationDate: string
+  active: boolean
+}
+
+// MOVEMENT TYPE RESPONSE 
+export interface MovementTypeResponse {
+  idMovementType: number
+  typeName: string
+}

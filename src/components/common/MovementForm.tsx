@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCategoryStore } from '../../store/CategoryStore'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
-import type { Movimiento } from '../../types'
+import { getAllMovementTypes } from '../../services/MovementTypeService'
+import type { Movimiento, MovementTypeResponse } from '../../types'
 
 interface MovementFormProps {
   onSubmit: (data: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => void
@@ -12,6 +13,11 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
   const { categories } = useCategoryStore()
   const { paymentMethods } = usePaymentMethodStore()
 
+  const [movementTypes, setMovementTypes] = useState<MovementTypeResponse[]>([])
+  const [selectedType, setSelectedType] = useState<number>(0)
+  const [loadingTypes, setLoadingTypes] = useState(false)
+  const [errorTypes, setErrorTypes] = useState<string | null>(null)
+
   const [form, setForm] = useState({
     idCategoria: 0,
     idMetodoPago: 0,
@@ -19,6 +25,23 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
     descripcion: '',
     fechaMovimiento: new Date().toISOString().split('T')[0],
   })
+
+  useEffect(() => {
+    const fetchMovementTypes = async () => {
+      setLoadingTypes(true)
+      setErrorTypes(null)
+      try {
+        const data = await getAllMovementTypes()
+        setMovementTypes(data)
+      } catch (err) {
+        setErrorTypes('No se pudieron cargar los tipos de movimiento.')
+      } finally {
+        setLoadingTypes(false)
+      }
+    }
+
+    fetchMovementTypes()
+  }, [])
 
   const handleSubmit = () => {
     if (!form.idCategoria || !form.idMetodoPago || !form.monto || !form.descripcion) return
@@ -39,6 +62,30 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
 
   return (
     <div className="flex flex-col gap-4">
+
+      {/* Tipo de movimiento */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-slate-400 text-xs">Tipo de movimiento</label>
+        {loadingTypes ? (
+          <p className="text-slate-500 text-xs">Cargando tipos...</p>
+        ) : errorTypes ? (
+          <p style={{ color: '#f07060' }} className="text-xs">{errorTypes}</p>
+        ) : (
+          <select
+            value={selectedType}
+            onChange={e => setSelectedType(Number(e.target.value))}
+            style={inputStyle}
+            className="rounded-lg px-3 py-2.5 text-sm outline-none"
+          >
+            <option value={0} disabled>Seleccioná un tipo</option>
+            {movementTypes.map(type => (
+              <option key={type.idMovementType} value={type.idMovementType}>
+                {type.typeName}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
 
       {/* Descripción */}
       <div className="flex flex-col gap-1.5">
