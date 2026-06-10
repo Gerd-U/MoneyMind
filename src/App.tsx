@@ -20,7 +20,7 @@ function App() {
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="metodos-pago" element={<PaymentMethodsPage />} />
           <Route path="perfil" element={<ProfilePage />} />
-          <Route path="/budgets" element={<BudgetPage />} />
+          <Route path="presupuestos" element={<BudgetPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
@@ -28,6 +28,5 @@ function App() {
   )
 }
 
-// y en las rutas:
 
 export default App

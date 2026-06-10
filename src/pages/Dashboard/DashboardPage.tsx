@@ -76,7 +76,7 @@ export default function DashboardPage() {
   const balance = ingresos - egresos
 
   const movimientosRecientes = [...movements]
-    .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
+    .sort((a, b) => new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime())
     .slice(0, 5)
 
   const datosGrafico = [
@@ -162,7 +162,7 @@ export default function DashboardPage() {
               const esIngreso = categoria?.idMovementType === 1
 
               return (
-                <div key={m.idTransaction} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                <div key={m.idMovement} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-white text-sm font-medium">{m.description}</span>
                     <span className="text-slate-500 text-xs">{m.categoryName} · {m.paymentMethodName}</span>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                     <span style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }} className="text-sm font-semibold">
                       {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
                     </span>
-                    <span className="text-slate-500 text-xs">{m.transactionDate}</span>
+                    <span className="text-slate-500 text-xs">{m.movementDate}</span>
                   </div>
                 </div>
               )
