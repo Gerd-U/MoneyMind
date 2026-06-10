@@ -124,10 +124,10 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
         >
           <option value={0} disabled>Seleccioná una categoría</option>
           {categories
-            .filter(c => c.estadoCategoria)
+            .filter(c => c.active)
             .map(c => (
-              <option key={c.idCategoria} value={c.idCategoria}>
-                {c.nombreCategoria}
+              <option key={c.idCategory} value={c.idCategory}>
+                {c.categoryName}
               </option>
             ))}
         </select>
@@ -144,8 +144,8 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
         >
           <option value={0} disabled>Seleccioná un método</option>
           {paymentMethods.map(m => (
-            <option key={m.idMetodoPago} value={m.idMetodoPago}>
-              {m.nombreMetodo}
+            <option key={m.idPaymentMethod} value={m.idPaymentMethod}>
+              {m.methodName}
             </option>
           ))}
         </select>

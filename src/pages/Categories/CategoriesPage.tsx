@@ -1,30 +1,48 @@
-import { useState } from 'react'
-import { mockTiposMovimiento } from '../../data/mockData'
+import { useEffect, useState } from 'react'
 import { useCategoryStore } from '../../store/CategoryStore'
 import Modal from '../../components/common/Modal'
 
 export default function CategoriasPage() {
-  const [filtroTipo, setFiltroTipo] = useState<'todos' | 1 | 2>('todos')
+  const [filterMovementType, setFilterMovementType] = useState<'todos' | number>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [form, setForm] = useState({
-    idTipoMovimiento: 0,
-    nombreCategoria: '',
-    descripcion: '',
-    estadoCategoria: true,
+    idMovementType: 0,
+    categoryName: '',
+    description: '',
+    active: true,
   })
 
-  const { categories, add, remove, toggleStatus } = useCategoryStore()
+  const {
+    categories,
+    movementTypes,
+    isLoading,
+    error,
+    load,
+    add,
+    remove,
+    toggleStatus,
+  } = useCategoryStore()
 
-  const categoriasFiltradas = categories.filter(c => {
-    if (filtroTipo === 'todos') return true
-    return c.idTipoMovimiento === filtroTipo
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const filteredCategories = categories.filter(c => {
+    if (filterMovementType === 'todos') return true
+    return c.idMovementType === filterMovementType
   })
 
-  const handleSubmit = () => {
-    if (!form.idTipoMovimiento || !form.nombreCategoria) return
-    add(form)
+  const handleSubmit = async () => {
+    if (!form.idMovementType || !form.categoryName.trim()) return
+
+    await add({
+      ...form,
+      categoryName: form.categoryName.trim(),
+      description: form.description.trim(),
+    })
+
     setIsModalOpen(false)
-    setForm({ idTipoMovimiento: 0, nombreCategoria: '', descripcion: '', estadoCategoria: true })
+    setForm({ idMovementType: 0, categoryName: '', description: '', active: true })
   }
 
   const inputStyle = {
@@ -51,24 +69,41 @@ export default function CategoriasPage() {
         </button>
       </div>
 
+      {isLoading && (
+        <p className="text-slate-400 text-sm">Cargando categorías...</p>
+      )}
+
+      {error && (
+        <p className="text-red-400 text-sm">{error}</p>
+      )}
+
       {/* Filtros */}
-      <div className="flex gap-2">
-        {([
-          { label: 'Todas', value: 'todos' },
-          { label: 'Ingresos', value: 1 },
-          { label: 'Egresos', value: 2 },
-        ] as const).map(op => (
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={() => setFilterMovementType('todos')}
+          style={{
+            backgroundColor: filterMovementType === 'todos' ? '#101D32' : 'transparent',
+            borderColor: filterMovementType === 'todos' ? '#1e3a5f' : '#1e293b',
+          }}
+          className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
+        >
+          <span style={{ color: filterMovementType === 'todos' ? 'white' : '#64748b' }}>
+            Todas
+          </span>
+        </button>
+
+        {movementTypes.map(type => (
           <button
-            key={op.value}
-            onClick={() => setFiltroTipo(op.value)}
+            key={type.idMovementType}
+            onClick={() => setFilterMovementType(type.idMovementType)}
             style={{
-              backgroundColor: filtroTipo === op.value ? '#101D32' : 'transparent',
-              borderColor: filtroTipo === op.value ? '#1e3a5f' : '#1e293b',
+              backgroundColor: filterMovementType === type.idMovementType ? '#101D32' : 'transparent',
+              borderColor: filterMovementType === type.idMovementType ? '#1e3a5f' : '#1e293b',
             }}
             className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
           >
-            <span style={{ color: filtroTipo === op.value ? 'white' : '#64748b' }}>
-              {op.label}
+            <span style={{ color: filterMovementType === type.idMovementType ? 'white' : '#64748b' }}>
+              {type.typeName}
             </span>
           </button>
         ))}
@@ -76,13 +111,12 @@ export default function CategoriasPage() {
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categoriasFiltradas.map(c => {
-          const tipo = mockTiposMovimiento.find(t => t.idTipoMovimiento === c.idTipoMovimiento)
-          const esIngreso = c.idTipoMovimiento === 1
+        {filteredCategories.map(c => {
+          const esIngreso = c.idMovementType === 1
 
           return (
             <div
-              key={c.idCategoria}
+              key={c.idCategory}
               style={{ backgroundColor: '#101D32' }}
               className="rounded-xl p-5 flex flex-col gap-3"
             >
@@ -93,22 +127,22 @@ export default function CategoriasPage() {
                 }}
                 className="text-xs font-medium px-2 py-1 rounded-md w-fit"
               >
-                {tipo?.nombreTipo ?? '—'}
+                {c.movementTypeName}
               </span>
 
-              <p className="text-white font-semibold text-base">{c.nombreCategoria}</p>
-              <p className="text-slate-400 text-sm">{c.descripcion}</p>
+              <p className="text-white font-semibold text-base">{c.categoryName}</p>
+              <p className="text-slate-400 text-sm">{c.description}</p>
 
               <div className="flex items-center justify-between pt-2 border-t border-white/5">
                 <button
-                  onClick={() => toggleStatus(c.idCategoria)}
-                  style={{ color: c.estadoCategoria ? '#3ecf8e' : '#f07060' }}
+                  onClick={() => void toggleStatus(c.idCategory)}
+                  style={{ color: c.active ? '#3ecf8e' : '#f07060' }}
                   className="text-xs hover:opacity-70 transition-opacity"
                 >
-                  {c.estadoCategoria ? 'Activa' : 'Inactiva'}
+                  {c.active ? 'Activa' : 'Inactiva'}
                 </button>
                 <button
-                  onClick={() => remove(c.idCategoria)}
+                  onClick={() => void remove(c.idCategory)}
                   className="text-slate-600 hover:text-red-400 transition-colors text-xs"
                 >
                   Eliminar
@@ -130,8 +164,8 @@ export default function CategoriasPage() {
             <label className="text-slate-400 text-xs">Nombre</label>
             <input
               type="text"
-              value={form.nombreCategoria}
-              onChange={e => setForm({ ...form, nombreCategoria: e.target.value })}
+              value={form.categoryName}
+              onChange={e => setForm({ ...form, categoryName: e.target.value })}
               placeholder="ej. Alimentación"
               style={inputStyle}
               className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
@@ -142,8 +176,8 @@ export default function CategoriasPage() {
             <label className="text-slate-400 text-xs">Descripción</label>
             <input
               type="text"
-              value={form.descripcion}
-              onChange={e => setForm({ ...form, descripcion: e.target.value })}
+              value={form.description}
+              onChange={e => setForm({ ...form, description: e.target.value })}
               placeholder="ej. Supermercado y restaurantes"
               style={inputStyle}
               className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
@@ -153,15 +187,15 @@ export default function CategoriasPage() {
           <div className="flex flex-col gap-1.5">
             <label className="text-slate-400 text-xs">Tipo</label>
             <select
-              value={form.idTipoMovimiento}
-              onChange={e => setForm({ ...form, idTipoMovimiento: Number(e.target.value) })}
+              value={form.idMovementType}
+              onChange={e => setForm({ ...form, idMovementType: Number(e.target.value) })}
               style={inputStyle}
               className="rounded-lg px-3 py-2.5 text-sm outline-none"
             >
               <option value={0} disabled>Seleccioná un tipo</option>
-              {mockTiposMovimiento.map(t => (
-                <option key={t.idTipoMovimiento} value={t.idTipoMovimiento}>
-                  {t.nombreTipo}
+              {movementTypes.map(t => (
+                <option key={t.idMovementType} value={t.idMovementType}>
+                  {t.typeName}
                 </option>
               ))}
             </select>
@@ -169,7 +203,7 @@ export default function CategoriasPage() {
 
           <div className="flex gap-3 pt-2">
             <button
-              onClick={handleSubmit}
+              onClick={() => void handleSubmit()}
               style={{ backgroundColor: '#3ecf8e' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
             >
