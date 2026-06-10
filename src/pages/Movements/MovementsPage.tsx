@@ -13,13 +13,13 @@ const now = new Date()
 const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-30`
 
-export default function MovimientosPage() {
+export default function MovementsPage() { 
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'ingreso' | 'egreso'>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const { movements, isLoading, error, load, add, remove } = useMovementStore()
   const { categories, load: loadCategories } = useCategoryStore()
-  const { paymentMethods, load: loadPaymentMethods } = usePaymentMethodStore()
+  const { load: loadPaymentMethods } = usePaymentMethodStore()
 
   useEffect(() => {
     void load(startDate, endDate)
@@ -34,7 +34,7 @@ export default function MovimientosPage() {
       if (filtroTipo === 'egreso') return categoria?.idMovementType === 2
       return true
     })
-    .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
+    .sort((a, b) => new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime())
 
   const handleNewMovement = async (data: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => {
   await add({
@@ -43,7 +43,7 @@ export default function MovimientosPage() {
     idPaymentMethod: data.idMetodoPago,
     amount: data.monto,
     description: data.descripcion,
-    transactionDate: data.fechaMovimiento,
+    movementDate: data.fechaMovimiento,
   })
     setIsModalOpen(false)
   }
@@ -114,7 +114,7 @@ export default function MovimientosPage() {
 
               return (
                 <tr
-                  key={m.idTransaction}
+                  key={m.idMovement}
                   style={{ borderBottom: index < movimientosFiltrados.length - 1 ? '1px solid #0D1520' : 'none' }}
                   className="hover:bg-white/5 transition-colors"
                 >
@@ -131,7 +131,7 @@ export default function MovimientosPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-slate-400 text-sm">{m.paymentMethodName}</td>
-                  <td className="px-6 py-4 text-slate-400 text-sm">{m.transactionDate}</td>
+                  <td className="px-6 py-4 text-slate-400 text-sm">{m.movementDate}</td>
                   <td className="px-6 py-4 text-right">
                     <span
                       style={{ color: esIngreso ? '#3ecf8e' : '#f07060' }}
@@ -142,7 +142,7 @@ export default function MovimientosPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
-                      onClick={() => void remove(m.idTransaction)}
+                      onClick={() => void remove(m.idMovement)}
                       className="text-slate-600 hover:text-red-400 transition-colors text-xs"
                     >
                       Eliminar
@@ -163,14 +163,14 @@ export default function MovimientosPage() {
 
           return (
             <div
-              key={m.idTransaction}
+              key={m.idMovement}
               style={{ backgroundColor: '#101D32' }}
               className="rounded-xl p-4 flex items-center justify-between"
             >
               <div className="flex flex-col gap-1">
                 <span className="text-white text-sm font-medium">{m.description}</span>
                 <span className="text-slate-500 text-xs">{m.categoryName} · {m.paymentMethodName}</span>
-                <span className="text-slate-600 text-xs">{m.transactionDate}</span>
+                <span className="text-slate-600 text-xs">{m.movementDate}</span>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <span
@@ -180,7 +180,7 @@ export default function MovimientosPage() {
                   {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
                 </span>
                 <button
-                  onClick={() => void remove(m.idTransaction)}
+                  onClick={() => void remove(m.idMovement)}
                   className="text-slate-600 hover:text-red-400 transition-colors text-xs"
                 >
                   Eliminar

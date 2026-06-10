@@ -4,5 +4,5 @@ export interface MovementRequest {
   idPaymentMethod: number
   amount: number
   description: string
-  transactionDate: string
+  movementDate: string
 }

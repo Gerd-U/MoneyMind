@@ -47,7 +47,7 @@ export const useMovementStore = create<MovementStore>((set) => ({
     try {
       set({ error: null })
       await deleteMovement(id)
-      set(state => ({ movements: state.movements.filter(m => m.idTransaction !== id) }))
+      set(state => ({ movements: state.movements.filter(m => m.idMovement !== id) }))
     } catch (error) {
       console.error('Error en MovementStore:', error)
       set({ error: 'No se pudo eliminar el movimiento' })
