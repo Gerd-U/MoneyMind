@@ -7,6 +7,7 @@ import ReportsPage from './pages/Reports/ReportsPage'
 import NotFoundPage from './pages/NotFound/NotFoundPage'
 import MovementsPage from './pages/Movements/MovementsPage'
 import CategoriesPage from './pages/Categories/CategoriesPage'
+import BudgetPage from './pages/Budget/BudgetPage'
 
 function App() {
   return (
@@ -19,11 +20,14 @@ function App() {
           <Route path="categorias" element={<CategoriesPage />} />
           <Route path="metodos-pago" element={<PaymentMethodsPage />} />
           <Route path="perfil" element={<ProfilePage />} />
+          <Route path="/budgets" element={<BudgetPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )
 }
+
+// y en las rutas:
 
 export default App

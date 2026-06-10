@@ -1,27 +1,56 @@
 import { create } from 'zustand'
-import { mockMovimientos } from '../data/mockData'
-import type { Movimiento } from '../types'
+import type { MovementResponse } from '../models/responses/MovementResponse'
+import type { MovementRequest } from '../models/requests/MovementRequest'
+import { getMovements, createMovement, deleteMovement } from '../services/MovementService'
+
+const ID_USUARIO = 1 // temporal hasta que haya login
 
 interface MovementStore {
-  movements: Movimiento[]
-  add: (movement: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => void
-  remove: (id: number) => void
+  movements: MovementResponse[]
+  isLoading: boolean
+  error: string | null
+  load: (startDate: string, endDate: string) => Promise<void>
+  add: (data: MovementRequest) => Promise<void>
+  remove: (id: number) => Promise<void>
 }
 
-export const useMovementStore = create<MovementStore>((set, get) => ({
-  movements: mockMovimientos,
+export const useMovementStore = create<MovementStore>((set) => ({
+  movements: [],
+  isLoading: false,
+  error: null,
 
-  add: (data) => {
-    const newMovement: Movimiento = {
-      ...data,
-      idMovimiento: get().movements.length + 1,
-      idUsuario: 1,
-      fechaRegistro: new Date().toISOString(),
+  load: async (startDate, endDate) => {
+    try {
+      set({ isLoading: true, error: null })
+      const data = await getMovements(ID_USUARIO, startDate, endDate)
+      set({ movements: data })
+    } catch (error) {
+      console.error('Error en MovementStore:', error)
+      set({ error: 'No se pudieron cargar los movimientos' })
+    } finally {
+      set({ isLoading: false })
     }
-    set(state => ({ movements: [...state.movements, newMovement] }))
   },
 
-  remove: (id) => {
-    set(state => ({ movements: state.movements.filter(m => m.idMovimiento !== id) }))
+  add: async (data) => {
+    try {
+      set({ error: null })
+      const newMovement = await createMovement({ ...data, idUsuario: ID_USUARIO })
+      set(state => ({ movements: [...state.movements, newMovement] }))
+    } catch (error) {
+      console.error('Error en MovementStore:', error)
+      set({ error: 'No se pudo crear el movimiento' })
+    }
+  },
+
+  remove: async (id) => {
+    try {
+      set({ error: null })
+      await deleteMovement(id)
+      set(state => ({ movements: state.movements.filter(m => m.idTransaction !== id) }))
+    } catch (error) {
+      console.error('Error en MovementStore:', error)
+      set({ error: 'No se pudo eliminar el movimiento' })
+    }
   },
 }))
