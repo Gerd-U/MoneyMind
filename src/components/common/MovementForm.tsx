@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { useCategoryStore } from '../../store/CategoryStore'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import { getAllMovementTypes } from '../../services/MovementTypeService'
-import type { Movimiento, MovementTypeResponse } from '../../types'
-
+import type { Movimiento } from '../../types'
+import type { MovementTypeResponse } from '../../models/responses/MovementTypeResponse'
 interface MovementFormProps {
   onSubmit: (data: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => void
   onCancel: () => void

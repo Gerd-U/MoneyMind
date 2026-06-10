@@ -1,19 +1,19 @@
-import { config } from "../config";
-import type { UserResponse } from "../types";
+import { config } from '../config'
+import type { UserResponse } from '../models/responses/UserResponse'
 
-const API_URL = `${config.api.url}/users`;
+const API_URL = `${config.api.url}/users`
 
 export async function getUserByEmail(email: string): Promise<UserResponse> {
   try {
-    const response = await fetch(`${API_URL}/${email}`);
+    const response = await fetch(`${API_URL}/${email}`)
 
     if (!response.ok) {
-      throw new Error("Error al obtener el usuario");
+      throw new Error('Error al obtener el usuario')
     }
 
-    return await response.json();
+    return await response.json()
   } catch (error) {
-    console.error("Error en UserService:", error);
-    throw error;
+    console.error('Error en UserService:', error)
+    throw error
   }
 }
