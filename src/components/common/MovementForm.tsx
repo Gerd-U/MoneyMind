@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { useCategoryStore } from '../../store/CategoryStore'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import { getAllMovementTypes } from '../../services/MovementTypeService'
-import type { Movimiento } from '../../types'
+import type { MovementRequest } from '../../models/requests/MovementRequest'
 import type { MovementTypeResponse } from '../../models/responses/MovementTypeResponse'
+
 interface MovementFormProps {
-  onSubmit: (data: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => void
+  onSubmit: (data: Omit<MovementRequest, 'idUsuario'>) => void
   onCancel: () => void
 }
 
@@ -19,11 +20,11 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
   const [errorTypes, setErrorTypes] = useState<string | null>(null)
 
   const [form, setForm] = useState({
-    idCategoria: 0,
-    idMetodoPago: 0,
-    monto: '',
-    descripcion: '',
-    fechaMovimiento: new Date().toISOString().split('T')[0],
+    idCategory: 0,
+    idPaymentMethod: 0,
+    amount: '',
+    description: '',
+    transactionDate: new Date().toISOString().split('T')[0],
   })
 
   useEffect(() => {
@@ -33,24 +34,27 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
       try {
         const data = await getAllMovementTypes()
         setMovementTypes(data)
-      } catch (err) {
+      } catch {
         setErrorTypes('No se pudieron cargar los tipos de movimiento.')
       } finally {
         setLoadingTypes(false)
       }
     }
-
     fetchMovementTypes()
   }, [])
 
+  const filteredCategories = selectedType
+    ? categories.filter(c => c.idMovementType === selectedType && c.active)
+    : categories.filter(c => c.active)
+
   const handleSubmit = () => {
-    if (!form.idCategoria || !form.idMetodoPago || !form.monto || !form.descripcion) return
+    if (!form.idCategory || !form.idPaymentMethod || !form.amount || !form.description) return
     onSubmit({
-      idCategoria: form.idCategoria,
-      idMetodoPago: form.idMetodoPago,
-      monto: parseFloat(form.monto),
-      descripcion: form.descripcion,
-      fechaMovimiento: form.fechaMovimiento,
+      idCategory: form.idCategory,
+      idPaymentMethod: form.idPaymentMethod,
+      amount: parseFloat(form.amount),
+      description: form.description,
+      transactionDate: form.transactionDate,
     })
   }
 
@@ -73,7 +77,10 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
         ) : (
           <select
             value={selectedType}
-            onChange={e => setSelectedType(Number(e.target.value))}
+            onChange={e => {
+              setSelectedType(Number(e.target.value))
+              setForm({ ...form, idCategory: 0 })
+            }}
             style={inputStyle}
             className="rounded-lg px-3 py-2.5 text-sm outline-none"
           >
@@ -92,8 +99,8 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
         <label className="text-slate-400 text-xs">Descripción</label>
         <input
           type="text"
-          value={form.descripcion}
-          onChange={e => setForm({ ...form, descripcion: e.target.value })}
+          value={form.description}
+          onChange={e => setForm({ ...form, description: e.target.value })}
           placeholder="ej. Salario mensual"
           style={inputStyle}
           className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
@@ -105,8 +112,8 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
         <label className="text-slate-400 text-xs">Monto</label>
         <input
           type="number"
-          value={form.monto}
-          onChange={e => setForm({ ...form, monto: e.target.value })}
+          value={form.amount}
+          onChange={e => setForm({ ...form, amount: e.target.value })}
           placeholder="0"
           style={inputStyle}
           className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
@@ -117,19 +124,17 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
       <div className="flex flex-col gap-1.5">
         <label className="text-slate-400 text-xs">Categoría</label>
         <select
-          value={form.idCategoria}
-          onChange={e => setForm({ ...form, idCategoria: Number(e.target.value) })}
+          value={form.idCategory}
+          onChange={e => setForm({ ...form, idCategory: Number(e.target.value) })}
           style={inputStyle}
           className="rounded-lg px-3 py-2.5 text-sm outline-none"
         >
           <option value={0} disabled>Seleccioná una categoría</option>
-          {categories
-            .filter(c => c.active)
-            .map(c => (
-              <option key={c.idCategory} value={c.idCategory}>
-                {c.categoryName}
-              </option>
-            ))}
+          {filteredCategories.map(c => (
+            <option key={c.idCategory} value={c.idCategory}>
+              {c.categoryName}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -137,8 +142,8 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
       <div className="flex flex-col gap-1.5">
         <label className="text-slate-400 text-xs">Método de pago</label>
         <select
-          value={form.idMetodoPago}
-          onChange={e => setForm({ ...form, idMetodoPago: Number(e.target.value) })}
+          value={form.idPaymentMethod}
+          onChange={e => setForm({ ...form, idPaymentMethod: Number(e.target.value) })}
           style={inputStyle}
           className="rounded-lg px-3 py-2.5 text-sm outline-none"
         >
@@ -156,8 +161,8 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
         <label className="text-slate-400 text-xs">Fecha</label>
         <input
           type="date"
-          value={form.fechaMovimiento}
-          onChange={e => setForm({ ...form, fechaMovimiento: e.target.value })}
+          value={form.transactionDate}
+          onChange={e => setForm({ ...form, transactionDate: e.target.value })}
           style={inputStyle}
           className="rounded-lg px-3 py-2.5 text-sm outline-none"
         />

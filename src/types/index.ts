@@ -1,36 +1,4 @@
-// USUARIO
-export interface Usuario {
-  idUsuario: number
-  nombre: string
-  apellido: string
-  correo: string
-  contrasena: string
-  fechaRegistro: string
-  estadoUsuario: boolean
-}
-
-// TIPO_MOVIMIENTO
-export interface TipoMovimiento {
-  idTipoMovimiento: number
-  nombreTipo: string
-}
-
-// METODO_PAGO
-export interface MetodoPago {
-  idMetodoPago: number
-  nombreMetodo: string
-}
-
-// CATEGORIA
-export interface Categoria {
-  idCategoria: number
-  idTipoMovimiento: number
-  nombreCategoria: string
-  descripcion: string
-  estadoCategoria: boolean
-}
-
-// MOVIMIENTO
+// Interfaz transitoria — se mantiene mientras MovementForm migra completamente
 export interface Movimiento {
   idMovimiento: number
   idUsuario: number
@@ -42,7 +10,6 @@ export interface Movimiento {
   fechaRegistro: string
 }
 
-// PRESUPUESTO
 export interface Presupuesto {
   idPresupuesto: number
   idUsuario: number

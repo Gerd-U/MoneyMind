@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useCategoryStore } from '../../store/CategoryStore'
 import Modal from '../../components/common/Modal'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
 
-export default function CategoriasPage() {
+export default function CategoriesPage() {
   const [filterMovementType, setFilterMovementType] = useState<'todos' | number>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [form, setForm] = useState({
@@ -34,13 +36,11 @@ export default function CategoriasPage() {
 
   const handleSubmit = async () => {
     if (!form.idMovementType || !form.categoryName.trim()) return
-
     await add({
       ...form,
       categoryName: form.categoryName.trim(),
       description: form.description.trim(),
     })
-
     setIsModalOpen(false)
     setForm({ idMovementType: 0, categoryName: '', description: '', active: true })
   }
@@ -50,6 +50,9 @@ export default function CategoriasPage() {
     border: '1px solid #1e3a5f',
     color: 'white',
   }
+
+  if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorMessage message={error} onRetry={() => void load()} />
 
   return (
     <div className="flex flex-col gap-8">
@@ -68,14 +71,6 @@ export default function CategoriasPage() {
           + Nueva
         </button>
       </div>
-
-      {isLoading && (
-        <p className="text-slate-400 text-sm">Cargando categorías...</p>
-      )}
-
-      {error && (
-        <p className="text-red-400 text-sm">{error}</p>
-      )}
 
       {/* Filtros */}
       <div className="flex gap-2 flex-wrap">
@@ -203,7 +198,7 @@ export default function CategoriasPage() {
 
           <div className="flex gap-3 pt-2">
             <button
-              onClick={() => void handleSubmit()}
+              onClick={handleSubmit}
               style={{ backgroundColor: '#3ecf8e' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
             >

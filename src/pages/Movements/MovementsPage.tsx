@@ -4,7 +4,9 @@ import { useCategoryStore } from '../../store/CategoryStore'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import Modal from '../../components/common/Modal'
 import MovementForm from '../../components/common/MovementForm'
-import type { Movimiento } from '../../types'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
+import type { MovementRequest } from '../../models/requests/MovementRequest'
 
 const formatMonto = (monto: number) =>
   new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', maximumFractionDigits: 0 }).format(monto)
@@ -13,13 +15,13 @@ const now = new Date()
 const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-30`
 
-export default function MovimientosPage() {
+export default function MovementsPage() {
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'ingreso' | 'egreso'>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const { movements, isLoading, error, load, add, remove } = useMovementStore()
   const { categories, load: loadCategories } = useCategoryStore()
-  const { paymentMethods, load: loadPaymentMethods } = usePaymentMethodStore()
+  const { load: loadPaymentMethods } = usePaymentMethodStore()
 
   useEffect(() => {
     void load(startDate, endDate)
@@ -36,17 +38,13 @@ export default function MovimientosPage() {
     })
     .sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
 
-  const handleNewMovement = async (data: Omit<Movimiento, 'idMovimiento' | 'idUsuario' | 'fechaRegistro'>) => {
-  await add({
-    idUsuario: 1,
-    idCategory: data.idCategoria,
-    idPaymentMethod: data.idMetodoPago,
-    amount: data.monto,
-    description: data.descripcion,
-    transactionDate: data.fechaMovimiento,
-  })
+  const handleNewMovement = async (data: Omit<MovementRequest, 'idUsuario'>) => {
+    await add({ ...data, idUsuario: 1 })
     setIsModalOpen(false)
   }
+
+  if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorMessage message={error} onRetry={() => void load(startDate, endDate)} />
 
   return (
     <div className="flex flex-col gap-8">
@@ -67,9 +65,6 @@ export default function MovimientosPage() {
           + Nuevo
         </button>
       </div>
-
-      {isLoading && <p className="text-slate-400 text-sm">Cargando movimientos...</p>}
-      {error && <p className="text-red-400 text-sm">{error}</p>}
 
       {/* Filtros */}
       <div className="flex gap-2">

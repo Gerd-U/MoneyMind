@@ -1,19 +1,14 @@
 import { useEffect, useState } from 'react'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import Modal from '../../components/common/Modal'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
 
 export default function PaymentMethodsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [methodName, setMethodName] = useState('')
 
-  const {
-    paymentMethods,
-    isLoading,
-    error,
-    load,
-    add,
-    remove,
-  } = usePaymentMethodStore()
+  const { paymentMethods, isLoading, error, load, add, remove } = usePaymentMethodStore()
 
   useEffect(() => {
     void load()
@@ -21,7 +16,6 @@ export default function PaymentMethodsPage() {
 
   const handleSubmit = async () => {
     if (!methodName.trim()) return
-
     await add({ methodName: methodName.trim() })
     setIsModalOpen(false)
     setMethodName('')
@@ -32,6 +26,9 @@ export default function PaymentMethodsPage() {
     border: '1px solid #1e3a5f',
     color: 'white',
   }
+
+  if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorMessage message={error} onRetry={() => void load()} />
 
   return (
     <div className="flex flex-col gap-8">
@@ -50,14 +47,6 @@ export default function PaymentMethodsPage() {
           + Nuevo
         </button>
       </div>
-
-      {isLoading && (
-        <p className="text-slate-400 text-sm">Cargando métodos de pago...</p>
-      )}
-
-      {error && (
-        <p className="text-red-400 text-sm">{error}</p>
-      )}
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -110,7 +99,7 @@ export default function PaymentMethodsPage() {
 
           <div className="flex gap-3 pt-2">
             <button
-              onClick={() => void handleSubmit()}
+              onClick={handleSubmit}
               style={{ backgroundColor: '#3ecf8e' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
             >
