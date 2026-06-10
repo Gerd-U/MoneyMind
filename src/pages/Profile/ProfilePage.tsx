@@ -1,40 +1,44 @@
-import { useState } from 'react'
-
-interface UserProfile {
-  nombre: string
-  apellido: string
-  correo: string
-  fechaRegistro: string
-  estadoUsuario: boolean
-}
+import { useEffect, useState } from 'react'
+import { getUserByEmail } from '../../services/UserService'
+import { useUserStore } from '../../store/UserStore'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile>({
-    nombre: 'Gerald',
-    apellido: 'Mora',
-    correo: 'gerald@moneymind.com',
-    fechaRegistro: '2026-01-15',
-    estadoUsuario: true,
-  })
+  const { user, setUser } = useUserStore()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [isEditing, setIsEditing] = useState(false)
-  const [form, setForm] = useState(user)
+  useEffect(() => {
+    if (user) return
 
-  const handleSave = () => {
-    setUser(form)
-    setIsEditing(false)
-  }
+    const fetchUser = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        //Traer datos del servidor
+        const data = await getUserByEmail('anaGonzalez@moneymind.com')
+        //Guardar en el store
+        setUser(data)
+      } catch (err) {
+        //Mostrar error si algo falla
+        setError('No se pudo cargar la información del perfil. Intentá de nuevo.')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const handleCancel = () => {
-    setForm(user)
-    setIsEditing(false)
-  }
+    fetchUser()
+  }, [])
 
-  const inputStyle = {
-    backgroundColor: '#0D1520',
-    border: '1px solid #1e3a5f',
-    color: 'white',
-  }
+  //Mostrar spinner mientras carga
+  if (loading) return <LoadingSpinner />
+
+  //Mostrar error si algo falló
+  if (error) return <ErrorMessage message={error} onRetry={() => {}} />
+
+  // Si aún no hay datos
+  if (!user) return null
 
   return (
     <div className="flex flex-col gap-8">
@@ -54,17 +58,17 @@ export default function ProfilePage() {
             style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
             className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold flex-shrink-0"
           >
-            {user.nombre[0]}{user.apellido[0]}
+            {user.firstName[0]}{user.lastName[0]}
           </div>
           <div>
-            <p className="text-white text-lg font-semibold">{user.nombre} {user.apellido}</p>
-            <p className="text-slate-400 text-sm">{user.correo}</p>
+            <p className="text-white text-lg font-semibold">{user.firstName} {user.lastName}</p>
+            <p className="text-slate-400 text-sm">{user.email}</p>
           </div>
           <span
             style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
             className="ml-auto text-xs font-medium px-2 py-1 rounded-md"
           >
-            Activo
+            {user.active ? 'Activo' : 'Inactivo'}
           </span>
         </div>
 
@@ -72,98 +76,43 @@ export default function ProfilePage() {
         <div style={{ borderColor: '#1e3a5f' }} className="border-t" />
 
         {/* Fields */}
-        {isEditing ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-slate-500 text-xs">Nombre</label>
-              <input
-                type="text"
-                value={form.nombre}
-                onChange={e => setForm({ ...form, nombre: e.target.value })}
-                style={inputStyle}
-                className="rounded-lg px-3 py-2.5 text-sm outline-none"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-slate-500 text-xs">Apellido</label>
-              <input
-                type="text"
-                value={form.apellido}
-                onChange={e => setForm({ ...form, apellido: e.target.value })}
-                style={inputStyle}
-                className="rounded-lg px-3 py-2.5 text-sm outline-none"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <label className="text-slate-500 text-xs">Correo</label>
-              <input
-                type="email"
-                value={form.correo}
-                onChange={e => setForm({ ...form, correo: e.target.value })}
-                style={inputStyle}
-                className="rounded-lg px-3 py-2.5 text-sm outline-none"
-              />
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-1">
+            <span className="text-slate-500 text-xs">Nombre</span>
+            <span className="text-white text-sm font-medium">{user.firstName}</span>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-500 text-xs">Nombre</span>
-              <span className="text-white text-sm font-medium">{user.nombre}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-500 text-xs">Apellido</span>
-              <span className="text-white text-sm font-medium">{user.apellido}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-500 text-xs">Correo</span>
-              <span className="text-white text-sm font-medium">{user.correo}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-slate-500 text-xs">Miembro desde</span>
-              <span className="text-white text-sm font-medium">{user.fechaRegistro}</span>
-            </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-slate-500 text-xs">Apellido</span>
+            <span className="text-white text-sm font-medium">{user.lastName}</span>
           </div>
-        )}
+          <div className="flex flex-col gap-1">
+            <span className="text-slate-500 text-xs">Correo</span>
+            <span className="text-white text-sm font-medium">{user.email}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-slate-500 text-xs">Miembro desde</span>
+            <span className="text-white text-sm font-medium">{user.registrationDate}</span>
+          </div>
+        </div>
 
         {/* Divider */}
         <div style={{ borderColor: '#1e3a5f' }} className="border-t" />
 
         {/* Actions */}
-        {isEditing ? (
-          <div className="flex gap-3">
-            <button
-              onClick={handleSave}
-              style={{ backgroundColor: '#3ecf8e' }}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
-            >
-              Guardar cambios
-            </button>
-            <button
-              onClick={handleCancel}
-              style={{ borderColor: '#1e3a5f' }}
-              className="px-4 py-2 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
-            >
-              Cancelar
-            </button>
-          </div>
-        ) : (
-          <div className="flex gap-3">
-            <button
-              onClick={() => setIsEditing(true)}
-              style={{ backgroundColor: '#3ecf8e' }}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
-            >
-              Editar perfil
-            </button>
-            <button
-              style={{ borderColor: '#1e3a5f' }}
-              className="px-4 py-2 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
-            >
-              Cambiar contraseña
-            </button>
-          </div>
-        )}
+        <div className="flex gap-3">
+          <button
+            style={{ backgroundColor: '#3ecf8e' }}
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
+          >
+            Editar perfil
+          </button>
+          <button
+            style={{ borderColor: '#1e3a5f' }}
+            className="px-4 py-2 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
+          >
+            Cambiar contraseña
+          </button>
+        </div>
 
       </div>
     </div>

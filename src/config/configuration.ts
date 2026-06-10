@@ -1,5 +1,5 @@
 export interface Configuration {
   api: {
-    url: string
-  }
+    url: string;
+  };
 }
