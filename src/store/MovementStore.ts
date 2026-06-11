@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { MovementResponse } from '../models/responses/MovementResponse'
 import type { MovementRequest } from '../models/requests/MovementRequest'
-import { getMovements, createMovement, deleteMovement } from '../services/MovementService'
+import { getMovements, createMovement, updateMovement, deleteMovement } from '../services/MovementService'
 
 interface MovementStore {
   movements: MovementResponse[]
@@ -9,6 +9,7 @@ interface MovementStore {
   error: string | null
   load: (startDate: string, endDate: string, idUsuario: number) => Promise<void>
   add: (data: MovementRequest) => Promise<void>
+  update: (id: number, data: MovementRequest) => Promise<void>
   remove: (id: number) => Promise<void>
 }
 
@@ -38,6 +39,17 @@ export const useMovementStore = create<MovementStore>((set) => ({
     } catch (error) {
       console.error('Error en MovementStore:', error)
       set({ error: 'No se pudo crear el movimiento' })
+    }
+  },
+
+  update: async (id, data) => {
+    try {
+      set({ error: null })
+      const updated = await updateMovement(id, data)
+      set(state => ({ movements: state.movements.map(m => m.idMovement === id ? updated : m) }))
+    } catch (error) {
+      console.error('Error en MovementStore:', error)
+      set({ error: 'No se pudo actualizar el movimiento' })
     }
   },
 

@@ -3,14 +3,16 @@ import { useCategoryStore } from '../../store/CategoryStore'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import { getAllMovementTypes } from '../../services/MovementTypeService'
 import type { MovementRequest } from '../../models/requests/MovementRequest'
+import type { MovementResponse } from '../../models/responses/MovementResponse'
 import type { MovementTypeResponse } from '../../models/responses/MovementTypeResponse'
 
 interface MovementFormProps {
   onSubmit: (data: Omit<MovementRequest, 'idUsuario'>) => void
   onCancel: () => void
+  initialData?: MovementResponse
 }
 
-export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) {
+export default function MovementForm({ onSubmit, onCancel, initialData }: MovementFormProps) {
   const { categories } = useCategoryStore()
   const { paymentMethods } = usePaymentMethodStore()
 
@@ -20,11 +22,11 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
   const [errorTypes, setErrorTypes] = useState<string | null>(null)
 
   const [form, setForm] = useState({
-    idCategory: 0,
-    idPaymentMethod: 0,
-    amount: '',
-    description: '',
-    transactionDate: new Date().toISOString().split('T')[0],
+    idCategory: initialData?.idCategory ?? 0,
+    idPaymentMethod: initialData?.idPaymentMethod ?? 0,
+    amount: initialData?.amount ? String(initialData.amount) : '',
+    description: initialData?.description ?? '',
+    movementDate: initialData?.movementDate ?? new Date().toISOString().split('T')[0],
   })
 
   useEffect(() => {
@@ -34,6 +36,12 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
       try {
         const data = await getAllMovementTypes()
         setMovementTypes(data)
+
+        // Si hay datos iniciales, preseleccionar el tipo de movimiento
+        if (initialData) {
+          const categoria = categories.find(c => c.idCategory === initialData.idCategory)
+          if (categoria) setSelectedType(categoria.idMovementType)
+        }
       } catch {
         setErrorTypes('No se pudieron cargar los tipos de movimiento.')
       } finally {
@@ -41,7 +49,7 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
       }
     }
     fetchMovementTypes()
-  }, [])
+  }, [initialData, categories])
 
   const filteredCategories = selectedType
     ? categories.filter(c => c.idMovementType === selectedType && c.active)
@@ -54,7 +62,7 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
       idPaymentMethod: form.idPaymentMethod,
       amount: parseFloat(form.amount),
       description: form.description,
-      movementDate: form.transactionDate,
+      movementDate: form.movementDate,
     })
   }
 
@@ -161,8 +169,8 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
         <label className="text-slate-400 text-xs">Fecha</label>
         <input
           type="date"
-          value={form.transactionDate}
-          onChange={e => setForm({ ...form, transactionDate: e.target.value })}
+          value={form.movementDate}
+          onChange={e => setForm({ ...form, movementDate: e.target.value })}
           style={inputStyle}
           className="rounded-lg px-3 py-2.5 text-sm outline-none"
         />
@@ -175,7 +183,7 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
           style={{ backgroundColor: '#3ecf8e' }}
           className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
-          Guardar movimiento
+          {initialData ? 'Actualizar movimiento' : 'Guardar movimiento'}
         </button>
         <button
           onClick={onCancel}

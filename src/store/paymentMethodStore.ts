@@ -5,6 +5,7 @@ import {
   createPaymentMethod,
   deletePaymentMethod,
   getPaymentMethods,
+  updatePaymentMethod,
 } from '../services/PaymentMethodService'
 
 interface PaymentMethodStore {
@@ -13,6 +14,7 @@ interface PaymentMethodStore {
   error: string | null
   load: () => Promise<void>
   add: (paymentMethod: PaymentMethodRequest) => Promise<void>
+  update: (id: number, data: PaymentMethodRequest) => Promise<void>
   remove: (id: number) => Promise<void>
 }
 
@@ -42,6 +44,19 @@ export const usePaymentMethodStore = create<PaymentMethodStore>((set) => ({
     } catch (error) {
       console.error('Error en paymentMethodStore:', error)
       set({ error: 'No se pudo crear el método de pago' })
+    }
+  },
+
+  update: async (id, data) => {
+    try {
+      set({ error: null })
+      const updated = await updatePaymentMethod(id, data)
+      set(state => ({
+        paymentMethods: state.paymentMethods.map(m => m.idPaymentMethod === id ? updated : m)
+      }))
+    } catch (error) {
+      console.error('Error en paymentMethodStore:', error)
+      set({ error: 'No se pudo actualizar el método de pago' })
     }
   },
 

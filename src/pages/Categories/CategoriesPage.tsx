@@ -3,10 +3,12 @@ import { useCategoryStore } from '../../store/CategoryStore'
 import Modal from '../../components/common/Modal'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
+import type { CategoryResponse } from '../../models/responses/CategoryResponse'
 
 export default function CategoriesPage() {
   const [filterMovementType, setFilterMovementType] = useState<'todos' | number>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<CategoryResponse | null>(null)
   const [form, setForm] = useState({
     idMovementType: 0,
     categoryName: '',
@@ -14,7 +16,7 @@ export default function CategoriesPage() {
     active: true,
   })
 
-  const { categories, movementTypes, isLoading, error, load, add, remove, toggleStatus } = useCategoryStore()
+  const { categories, movementTypes, isLoading, error, load, add, update, remove, toggleStatus } = useCategoryStore()
 
   useEffect(() => {
     void load()
@@ -27,12 +29,36 @@ export default function CategoriesPage() {
 
   const handleSubmit = async () => {
     if (!form.idMovementType || !form.categoryName.trim()) return
-    await add({
-      ...form,
-      categoryName: form.categoryName.trim(),
-      description: form.description.trim(),
+    if (editingCategory) {
+      await update(editingCategory.idCategory, {
+        ...form,
+        categoryName: form.categoryName.trim(),
+        description: form.description.trim(),
+      })
+    } else {
+      await add({
+        ...form,
+        categoryName: form.categoryName.trim(),
+        description: form.description.trim(),
+      })
+    }
+    handleCloseModal()
+  }
+
+  const handleEditClick = (c: CategoryResponse) => {
+    setEditingCategory(c)
+    setForm({
+      idMovementType: c.idMovementType,
+      categoryName: c.categoryName,
+      description: c.description,
+      active: c.active,
     })
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
     setIsModalOpen(false)
+    setEditingCategory(null)
     setForm({ idMovementType: 0, categoryName: '', description: '', active: true })
   }
 
@@ -54,7 +80,7 @@ export default function CategoriesPage() {
           <p className="text-slate-400 text-sm mt-1">{categories.length} categorías registradas</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { setEditingCategory(null); setIsModalOpen(true) }}
           style={{ backgroundColor: '#3ecf8e' }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
@@ -136,12 +162,20 @@ export default function CategoriesPage() {
                   >
                     {c.active ? 'Activa' : 'Inactiva'}
                   </button>
-                  <button
-                    onClick={() => void remove(c.idCategory)}
-                    className="text-slate-600 hover:text-red-400 transition-colors text-xs"
-                  >
-                    Eliminar
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleEditClick(c)}
+                      className="text-slate-400 hover:text-white transition-colors text-xs"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => void remove(c.idCategory)}
+                      className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
               </div>
             )
@@ -150,7 +184,11 @@ export default function CategoriesPage() {
       )}
 
       {/* Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nueva categoría">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={editingCategory ? 'Editar categoría' : 'Nueva categoría'}
+      >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-slate-400 text-xs">Nombre</label>
@@ -196,10 +234,10 @@ export default function CategoriesPage() {
               style={{ backgroundColor: '#3ecf8e' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
             >
-              Guardar categoría
+              {editingCategory ? 'Actualizar categoría' : 'Guardar categoría'}
             </button>
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               style={{ borderColor: '#1e3a5f' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
             >

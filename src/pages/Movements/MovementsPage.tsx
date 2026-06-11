@@ -8,6 +8,7 @@ import MovementForm from '../../components/common/MovementForm'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import type { MovementRequest } from '../../models/requests/MovementRequest'
+import type { MovementResponse } from '../../models/responses/MovementResponse'
 
 const formatMonto = (monto: number) =>
   new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', maximumFractionDigits: 0 }).format(monto)
@@ -19,9 +20,10 @@ const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '
 export default function MovementsPage() {
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'ingreso' | 'egreso'>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingMovement, setEditingMovement] = useState<MovementResponse | null>(null)
 
   const { idUsuario } = useAuth()
-  const { movements, isLoading, error, load, add, remove } = useMovementStore()
+  const { movements, isLoading, error, load, add, update, remove } = useMovementStore()
   const { categories, load: loadCategories } = useCategoryStore()
   const { load: loadPaymentMethods } = usePaymentMethodStore()
 
@@ -47,6 +49,23 @@ export default function MovementsPage() {
     setIsModalOpen(false)
   }
 
+  const handleUpdateMovement = async (data: Omit<MovementRequest, 'idUsuario'>) => {
+    if (!idUsuario || !editingMovement) return
+    await update(editingMovement.idMovement, { ...data, idUsuario })
+    setIsModalOpen(false)
+    setEditingMovement(null)
+  }
+
+  const handleEditClick = (m: MovementResponse) => {
+    setEditingMovement(m)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingMovement(null)
+  }
+
   if (isLoading) return <LoadingSpinner />
 
   return (
@@ -61,7 +80,7 @@ export default function MovementsPage() {
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { setEditingMovement(null); setIsModalOpen(true) }}
           style={{ backgroundColor: '#3ecf8e' }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
@@ -153,12 +172,20 @@ export default function MovementsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => void remove(m.idMovement)}
-                        className="text-slate-600 hover:text-red-400 transition-colors text-xs"
-                      >
-                        Eliminar
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => handleEditClick(m)}
+                          className="text-slate-400 hover:text-white transition-colors text-xs"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => void remove(m.idMovement)}
+                          className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -193,12 +220,20 @@ export default function MovementsPage() {
                   >
                     {esIngreso ? '+' : '-'}{formatMonto(m.amount)}
                   </span>
-                  <button
-                    onClick={() => void remove(m.idMovement)}
-                    className="text-slate-600 hover:text-red-400 transition-colors text-xs"
-                  >
-                    Eliminar
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditClick(m)}
+                      className="text-slate-400 hover:text-white transition-colors text-xs"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => void remove(m.idMovement)}
+                      className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
               </div>
             )
@@ -209,12 +244,13 @@ export default function MovementsPage() {
       {/* Modal */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Nuevo movimiento"
+        onClose={handleCloseModal}
+        title={editingMovement ? 'Editar movimiento' : 'Nuevo movimiento'}
       >
         <MovementForm
-          onSubmit={handleNewMovement}
-          onCancel={() => setIsModalOpen(false)}
+          onSubmit={editingMovement ? handleUpdateMovement : handleNewMovement}
+          onCancel={handleCloseModal}
+          initialData={editingMovement ?? undefined}
         />
       </Modal>
 
