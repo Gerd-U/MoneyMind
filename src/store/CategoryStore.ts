@@ -17,6 +17,7 @@ interface CategoryStore {
   error: string | null
   load: () => Promise<void>
   add: (category: CategoryRequest) => Promise<void>
+  update: (id: number, data: CategoryRequest) => Promise<void>
   remove: (id: number) => Promise<void>
   toggleStatus: (id: number) => Promise<void>
 }
@@ -54,6 +55,19 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
     }
   },
 
+  update: async (id, data) => {
+    try {
+      set({ error: null })
+      const updated = await updateCategory(id, data)
+      set(state => ({
+        categories: state.categories.map(c => c.idCategory === id ? updated : c)
+      }))
+    } catch (error) {
+      console.error('Error en CategoryStore:', error)
+      set({ error: 'No se pudo actualizar la categoría' })
+    }
+  },
+
   remove: async (id) => {
     try {
       set({ error: null })
@@ -67,12 +81,10 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
 
   toggleStatus: async (id) => {
     const category = get().categories.find(c => c.idCategory === id)
-
     if (!category) {
       set({ error: 'Categoría no encontrada' })
       return
     }
-
     try {
       set({ error: null })
       const updatedCategory = await updateCategory(id, {
@@ -81,11 +93,8 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
         description: category.description,
         active: !category.active,
       })
-
       set(state => ({
-        categories: state.categories.map(c =>
-          c.idCategory === id ? updatedCategory : c
-        ),
+        categories: state.categories.map(c => c.idCategory === id ? updatedCategory : c)
       }))
     } catch (error) {
       console.error('Error en CategoryStore:', error)

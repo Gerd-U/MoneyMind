@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { useMovementStore } from '../../store/MovementStore'
 import { useBudgetStore } from '../../store/BudgetStore'
 import { useCategoryStore } from '../../store/CategoryStore'
+import { useAuth } from '../../context/AuthContext'
 
 const formatMonto = (monto: number) =>
   new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', maximumFractionDigits: 0 }).format(monto)
@@ -55,15 +56,17 @@ function PresupuestoBar({ categoryName, spent, limit }: {
 }
 
 export default function DashboardPage() {
+  const { idUsuario } = useAuth()
   const { movements, load: loadMovements } = useMovementStore()
   const { budgets, load: loadBudgets } = useBudgetStore()
   const { categories, load: loadCategories } = useCategoryStore()
 
   useEffect(() => {
-    void loadMovements(startDate, endDate)
-    void loadBudgets(now.getMonth() + 1, now.getFullYear())
+    if (!idUsuario) return
+    void loadMovements(startDate, endDate, idUsuario)
+    void loadBudgets(now.getMonth() + 1, now.getFullYear(), idUsuario)
     void loadCategories()
-  }, [loadMovements, loadBudgets, loadCategories])
+  }, [loadMovements, loadBudgets, loadCategories, idUsuario])
 
   const ingresos = movements
     .filter(m => categories.find(c => c.idCategory === m.idCategory)?.idMovementType === 1)
@@ -136,6 +139,9 @@ export default function DashboardPage() {
         <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-6 flex flex-col gap-5">
           <h2 className="text-white font-semibold text-base">Presupuestos del mes</h2>
           <div className="flex flex-col gap-4">
+            {budgets.length === 0 && (
+              <p className="text-slate-500 text-sm">No hay presupuestos registrados.</p>
+            )}
             {budgets.map(b => {
               const spent = movements
                 .filter(m => m.idCategory === b.idCategory)
@@ -157,6 +163,9 @@ export default function DashboardPage() {
         <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-6 flex flex-col gap-4">
           <h2 className="text-white font-semibold text-base">Movimientos recientes</h2>
           <div className="flex flex-col">
+            {movimientosRecientes.length === 0 && (
+              <p className="text-slate-500 text-sm">No hay movimientos registrados.</p>
+            )}
             {movimientosRecientes.map(m => {
               const categoria = categories.find(c => c.idCategory === m.idCategory)
               const esIngreso = categoria?.idMovementType === 1

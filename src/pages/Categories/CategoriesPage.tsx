@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useCategoryStore } from '../../store/CategoryStore'
 import Modal from '../../components/common/Modal'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
+import type { CategoryResponse } from '../../models/responses/CategoryResponse'
 
-export default function CategoriasPage() {
+export default function CategoriesPage() {
   const [filterMovementType, setFilterMovementType] = useState<'todos' | number>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<CategoryResponse | null>(null)
   const [form, setForm] = useState({
     idMovementType: 0,
     categoryName: '',
@@ -12,16 +16,7 @@ export default function CategoriasPage() {
     active: true,
   })
 
-  const {
-    categories,
-    movementTypes,
-    isLoading,
-    error,
-    load,
-    add,
-    remove,
-    toggleStatus,
-  } = useCategoryStore()
+  const { categories, movementTypes, isLoading, error, load, add, update, remove, toggleStatus } = useCategoryStore()
 
   useEffect(() => {
     void load()
@@ -34,14 +29,36 @@ export default function CategoriasPage() {
 
   const handleSubmit = async () => {
     if (!form.idMovementType || !form.categoryName.trim()) return
+    if (editingCategory) {
+      await update(editingCategory.idCategory, {
+        ...form,
+        categoryName: form.categoryName.trim(),
+        description: form.description.trim(),
+      })
+    } else {
+      await add({
+        ...form,
+        categoryName: form.categoryName.trim(),
+        description: form.description.trim(),
+      })
+    }
+    handleCloseModal()
+  }
 
-    await add({
-      ...form,
-      categoryName: form.categoryName.trim(),
-      description: form.description.trim(),
+  const handleEditClick = (c: CategoryResponse) => {
+    setEditingCategory(c)
+    setForm({
+      idMovementType: c.idMovementType,
+      categoryName: c.categoryName,
+      description: c.description,
+      active: c.active,
     })
+    setIsModalOpen(true)
+  }
 
+  const handleCloseModal = () => {
     setIsModalOpen(false)
+    setEditingCategory(null)
     setForm({ idMovementType: 0, categoryName: '', description: '', active: true })
   }
 
@@ -50,6 +67,8 @@ export default function CategoriasPage() {
     border: '1px solid #1e3a5f',
     color: 'white',
   }
+
+  if (isLoading) return <LoadingSpinner />
 
   return (
     <div className="flex flex-col gap-8">
@@ -61,7 +80,7 @@ export default function CategoriasPage() {
           <p className="text-slate-400 text-sm mt-1">{categories.length} categorías registradas</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { setEditingCategory(null); setIsModalOpen(true) }}
           style={{ backgroundColor: '#3ecf8e' }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
@@ -69,95 +88,106 @@ export default function CategoriasPage() {
         </button>
       </div>
 
-      {isLoading && (
-        <p className="text-slate-400 text-sm">Cargando categorías...</p>
-      )}
-
-      {error && (
-        <p className="text-red-400 text-sm">{error}</p>
-      )}
+      {/* Error no bloqueante */}
+      {error && <ErrorMessage message={error} onRetry={() => void load()} />}
 
       {/* Filtros */}
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={() => setFilterMovementType('todos')}
-          style={{
-            backgroundColor: filterMovementType === 'todos' ? '#101D32' : 'transparent',
-            borderColor: filterMovementType === 'todos' ? '#1e3a5f' : '#1e293b',
-          }}
-          className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
-        >
-          <span style={{ color: filterMovementType === 'todos' ? 'white' : '#64748b' }}>
-            Todas
-          </span>
-        </button>
-
-        {movementTypes.map(type => (
+      {!error && (
+        <div className="flex gap-2 flex-wrap">
           <button
-            key={type.idMovementType}
-            onClick={() => setFilterMovementType(type.idMovementType)}
+            onClick={() => setFilterMovementType('todos')}
             style={{
-              backgroundColor: filterMovementType === type.idMovementType ? '#101D32' : 'transparent',
-              borderColor: filterMovementType === type.idMovementType ? '#1e3a5f' : '#1e293b',
+              backgroundColor: filterMovementType === 'todos' ? '#101D32' : 'transparent',
+              borderColor: filterMovementType === 'todos' ? '#1e3a5f' : '#1e293b',
             }}
             className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
           >
-            <span style={{ color: filterMovementType === type.idMovementType ? 'white' : '#64748b' }}>
-              {type.typeName}
+            <span style={{ color: filterMovementType === 'todos' ? 'white' : '#64748b' }}>
+              Todas
             </span>
           </button>
-        ))}
-      </div>
+          {movementTypes.map(type => (
+            <button
+              key={type.idMovementType}
+              onClick={() => setFilterMovementType(type.idMovementType)}
+              style={{
+                backgroundColor: filterMovementType === type.idMovementType ? '#101D32' : 'transparent',
+                borderColor: filterMovementType === type.idMovementType ? '#1e3a5f' : '#1e293b',
+              }}
+              className="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
+            >
+              <span style={{ color: filterMovementType === type.idMovementType ? 'white' : '#64748b' }}>
+                {type.typeName}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Vacío */}
+      {!error && categories.length === 0 && (
+        <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-10 flex flex-col items-center gap-3">
+          <p className="text-white font-medium text-sm">No hay categorías registradas</p>
+          <p className="text-slate-500 text-xs text-center">Creá una categoría para empezar a registrar movimientos.</p>
+        </div>
+      )}
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCategories.map(c => {
-          const esIngreso = c.idMovementType === 1
-
-          return (
-            <div
-              key={c.idCategory}
-              style={{ backgroundColor: '#101D32' }}
-              className="rounded-xl p-5 flex flex-col gap-3"
-            >
-              <span
-                style={{
-                  backgroundColor: esIngreso ? '#3ecf8e20' : '#f0706020',
-                  color: esIngreso ? '#3ecf8e' : '#f07060',
-                }}
-                className="text-xs font-medium px-2 py-1 rounded-md w-fit"
+      {!error && filteredCategories.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredCategories.map(c => {
+            const esIngreso = c.idMovementType === 1
+            return (
+              <div
+                key={c.idCategory}
+                style={{ backgroundColor: '#101D32' }}
+                className="rounded-xl p-5 flex flex-col gap-3"
               >
-                {c.movementTypeName}
-              </span>
-
-              <p className="text-white font-semibold text-base">{c.categoryName}</p>
-              <p className="text-slate-400 text-sm">{c.description}</p>
-
-              <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                <button
-                  onClick={() => void toggleStatus(c.idCategory)}
-                  style={{ color: c.active ? '#3ecf8e' : '#f07060' }}
-                  className="text-xs hover:opacity-70 transition-opacity"
+                <span
+                  style={{
+                    backgroundColor: esIngreso ? '#3ecf8e20' : '#f0706020',
+                    color: esIngreso ? '#3ecf8e' : '#f07060',
+                  }}
+                  className="text-xs font-medium px-2 py-1 rounded-md w-fit"
                 >
-                  {c.active ? 'Activa' : 'Inactiva'}
-                </button>
-                <button
-                  onClick={() => void remove(c.idCategory)}
-                  className="text-slate-600 hover:text-red-400 transition-colors text-xs"
-                >
-                  Eliminar
-                </button>
+                  {c.movementTypeName}
+                </span>
+                <p className="text-white font-semibold text-base">{c.categoryName}</p>
+                <p className="text-slate-400 text-sm">{c.description}</p>
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <button
+                    onClick={() => void toggleStatus(c.idCategory)}
+                    style={{ color: c.active ? '#3ecf8e' : '#f07060' }}
+                    className="text-xs hover:opacity-70 transition-opacity"
+                  >
+                    {c.active ? 'Activa' : 'Inactiva'}
+                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleEditClick(c)}
+                      className="text-slate-400 hover:text-white transition-colors text-xs"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => void remove(c.idCategory)}
+                      className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Modal */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Nueva categoría"
+        onClose={handleCloseModal}
+        title={editingCategory ? 'Editar categoría' : 'Nueva categoría'}
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
@@ -171,7 +201,6 @@ export default function CategoriasPage() {
               className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
             />
           </div>
-
           <div className="flex flex-col gap-1.5">
             <label className="text-slate-400 text-xs">Descripción</label>
             <input
@@ -183,7 +212,6 @@ export default function CategoriasPage() {
               className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
             />
           </div>
-
           <div className="flex flex-col gap-1.5">
             <label className="text-slate-400 text-xs">Tipo</label>
             <select
@@ -200,17 +228,16 @@ export default function CategoriasPage() {
               ))}
             </select>
           </div>
-
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => void handleSubmit()}
               style={{ backgroundColor: '#3ecf8e' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
             >
-              Guardar categoría
+              {editingCategory ? 'Actualizar categoría' : 'Guardar categoría'}
             </button>
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               style={{ borderColor: '#1e3a5f' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
             >

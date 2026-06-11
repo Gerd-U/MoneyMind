@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { UserResponse } from '../types'
+import type { UserResponse } from '../models/responses/UserResponse'
 
 interface UserStore {
   user: UserResponse | null
@@ -9,8 +9,6 @@ interface UserStore {
 
 export const useUserStore = create<UserStore>((set) => ({
   user: null,
-
   setUser: (user) => set({ user }),
-
   clearUser: () => set({ user: null }),
 }))

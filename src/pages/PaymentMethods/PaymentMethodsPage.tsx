@@ -1,19 +1,16 @@
 import { useEffect, useState } from 'react'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
 import Modal from '../../components/common/Modal'
+import LoadingSpinner from '../../components/common/LoadingSpinner'
+import ErrorMessage from '../../components/common/ErrorMessage'
+import type { PaymentMethodResponse } from '../../models/responses/PaymentMethodResponse'
 
 export default function PaymentMethodsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingMethod, setEditingMethod] = useState<PaymentMethodResponse | null>(null)
   const [methodName, setMethodName] = useState('')
 
-  const {
-    paymentMethods,
-    isLoading,
-    error,
-    load,
-    add,
-    remove,
-  } = usePaymentMethodStore()
+  const { paymentMethods, isLoading, error, load, add, update, remove } = usePaymentMethodStore()
 
   useEffect(() => {
     void load()
@@ -21,9 +18,23 @@ export default function PaymentMethodsPage() {
 
   const handleSubmit = async () => {
     if (!methodName.trim()) return
+    if (editingMethod) {
+      await update(editingMethod.idPaymentMethod, { methodName: methodName.trim() })
+    } else {
+      await add({ methodName: methodName.trim() })
+    }
+    handleCloseModal()
+  }
 
-    await add({ methodName: methodName.trim() })
+  const handleEditClick = (m: PaymentMethodResponse) => {
+    setEditingMethod(m)
+    setMethodName(m.methodName)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
     setIsModalOpen(false)
+    setEditingMethod(null)
     setMethodName('')
   }
 
@@ -32,6 +43,8 @@ export default function PaymentMethodsPage() {
     border: '1px solid #1e3a5f',
     color: 'white',
   }
+
+  if (isLoading) return <LoadingSpinner />
 
   return (
     <div className="flex flex-col gap-8">
@@ -43,7 +56,7 @@ export default function PaymentMethodsPage() {
           <p className="text-slate-400 text-sm mt-1">{paymentMethods.length} métodos registrados</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { setEditingMethod(null); setIsModalOpen(true) }}
           style={{ backgroundColor: '#3ecf8e' }}
           className="px-4 py-2 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
         >
@@ -51,49 +64,62 @@ export default function PaymentMethodsPage() {
         </button>
       </div>
 
-      {isLoading && (
-        <p className="text-slate-400 text-sm">Cargando métodos de pago...</p>
-      )}
+      {/* Error no bloqueante */}
+      {error && <ErrorMessage message={error} onRetry={() => void load()} />}
 
-      {error && (
-        <p className="text-red-400 text-sm">{error}</p>
+      {/* Vacío */}
+      {!error && paymentMethods.length === 0 && (
+        <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-10 flex flex-col items-center gap-3">
+          <p className="text-white font-medium text-sm">No hay métodos de pago registrados</p>
+          <p className="text-slate-500 text-xs text-center">Agregá un método de pago para usarlo en tus movimientos.</p>
+        </div>
       )}
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {paymentMethods.map(m => (
-          <div
-            key={m.idPaymentMethod}
-            style={{ backgroundColor: '#101D32' }}
-            className="rounded-xl p-5 flex flex-col gap-4"
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-white font-semibold text-base">{m.methodName}</p>
-              <span
-                style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
-                className="text-xs font-medium px-2 py-1 rounded-md"
-              >
-                Activo
-              </span>
+      {!error && paymentMethods.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paymentMethods.map(m => (
+            <div
+              key={m.idPaymentMethod}
+              style={{ backgroundColor: '#101D32' }}
+              className="rounded-xl p-5 flex flex-col gap-4"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-white font-semibold text-base">{m.methodName}</p>
+                <span
+                  style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
+                  className="text-xs font-medium px-2 py-1 rounded-md"
+                >
+                  Activo
+                </span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                <span className="text-slate-500 text-xs">ID #{m.idPaymentMethod}</span>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleEditClick(m)}
+                    className="text-slate-400 hover:text-white transition-colors text-xs"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => void remove(m.idPaymentMethod)}
+                    className="text-slate-600 hover:text-red-400 transition-colors text-xs"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center justify-between pt-2 border-t border-white/5">
-              <span className="text-slate-500 text-xs">ID #{m.idPaymentMethod}</span>
-              <button
-                onClick={() => void remove(m.idPaymentMethod)}
-                className="text-slate-600 hover:text-red-400 transition-colors text-xs"
-              >
-                Eliminar
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Modal */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Nuevo método de pago"
+        onClose={handleCloseModal}
+        title={editingMethod ? 'Editar método de pago' : 'Nuevo método de pago'}
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
@@ -107,17 +133,16 @@ export default function PaymentMethodsPage() {
               className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
             />
           </div>
-
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => void handleSubmit()}
               style={{ backgroundColor: '#3ecf8e' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-black hover:opacity-90 transition-opacity"
             >
-              Guardar método
+              {editingMethod ? 'Actualizar método' : 'Guardar método'}
             </button>
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               style={{ borderColor: '#1e3a5f' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
             >
