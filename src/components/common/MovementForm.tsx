@@ -54,7 +54,7 @@ export default function MovementForm({ onSubmit, onCancel }: MovementFormProps) 
       idPaymentMethod: form.idPaymentMethod,
       amount: parseFloat(form.amount),
       description: form.description,
-      transactionDate: form.transactionDate,
+      movementDate: form.transactionDate,
     })
   }
 

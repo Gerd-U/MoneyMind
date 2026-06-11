@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMovementStore } from '../../store/MovementStore'
 import { useCategoryStore } from '../../store/CategoryStore'
 import { usePaymentMethodStore } from '../../store/paymentMethodStore'
+import { useAuth } from '../../context/AuthContext'
 import Modal from '../../components/common/Modal'
 import MovementForm from '../../components/common/MovementForm'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
@@ -19,15 +20,17 @@ export default function MovementsPage() {
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'ingreso' | 'egreso'>('todos')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  const { idUsuario } = useAuth()
   const { movements, isLoading, error, load, add, remove } = useMovementStore()
   const { categories, load: loadCategories } = useCategoryStore()
   const { load: loadPaymentMethods } = usePaymentMethodStore()
 
   useEffect(() => {
-    void load(startDate, endDate)
+    if (!idUsuario) return
+    void load(startDate, endDate, idUsuario)
     void loadCategories()
     void loadPaymentMethods()
-  }, [load, loadCategories, loadPaymentMethods])
+  }, [load, loadCategories, loadPaymentMethods, idUsuario])
 
   const movimientosFiltrados = movements
     .filter(m => {
@@ -39,7 +42,8 @@ export default function MovementsPage() {
     .sort((a, b) => new Date(b.movementDate).getTime() - new Date(a.movementDate).getTime())
 
   const handleNewMovement = async (data: Omit<MovementRequest, 'idUsuario'>) => {
-    await add({ ...data, idUsuario: 1 })
+    if (!idUsuario) return
+    await add({ ...data, idUsuario })
     setIsModalOpen(false)
   }
 
@@ -66,7 +70,7 @@ export default function MovementsPage() {
       </div>
 
       {/* Error no bloqueante */}
-      {error && <ErrorMessage message={error} onRetry={() => void load(startDate, endDate)} />}
+      {error && <ErrorMessage message={error} onRetry={() => idUsuario && void load(startDate, endDate, idUsuario)} />}
 
       {/* Filtros */}
       {!error && (

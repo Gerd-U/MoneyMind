@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useBudgetStore } from '../../store/BudgetStore'
 import { useCategoryStore } from '../../store/CategoryStore'
+import { useAuth } from '../../context/AuthContext'
 import Modal from '../../components/common/Modal'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
@@ -20,30 +21,32 @@ export default function BudgetPage() {
     year: now.getFullYear(),
   })
 
+  const { idUsuario } = useAuth()
   const { budgets, isLoading: loadingBudgets, error: errorBudgets, load, add, edit, remove } = useBudgetStore()
   const { categories, isLoading: loadingCategories, load: loadCategories } = useCategoryStore()
 
   useEffect(() => {
-    void load(now.getMonth() + 1, now.getFullYear())
+    if (!idUsuario) return
+    void load(now.getMonth() + 1, now.getFullYear(), idUsuario)
     void loadCategories()
-  }, [load, loadCategories])
+  }, [load, loadCategories, idUsuario])
 
   const handleSubmit = async () => {
-    if (!form.idCategory || !form.limitAmount) return
+    if (!idUsuario || !form.idCategory || !form.limitAmount) return
     if (editingId !== null) {
       await edit(editingId, {
         idCategory: form.idCategory,
         limitAmount: parseFloat(form.limitAmount),
         month: form.month,
         year: form.year,
-      })
+      }, idUsuario)
     } else {
       await add({
         idCategory: form.idCategory,
         limitAmount: parseFloat(form.limitAmount),
         month: form.month,
         year: form.year,
-      })
+      }, idUsuario)
     }
     setIsModalOpen(false)
     setEditingId(null)
@@ -87,11 +90,11 @@ export default function BudgetPage() {
         </button>
       </div>
 
-      {/* Error — solo del store de presupuestos */}
+      {/* Error */}
       {errorBudgets && (
         <ErrorMessage
           message={errorBudgets}
-          onRetry={() => void load(now.getMonth() + 1, now.getFullYear())}
+          onRetry={() => idUsuario && void load(now.getMonth() + 1, now.getFullYear(), idUsuario)}
         />
       )}
 

@@ -2,7 +2,7 @@ import { config } from '../config'
 import type { MovementRequest } from '../models/requests/MovementRequest'
 import type { MovementResponse } from '../models/responses/MovementResponse'
 
-const API_URL = `${config.api.url}/transactions`
+const API_URL = `${config.api.url}/movement`
 
 export async function getMovements(idUsuario: number, startDate: string, endDate: string): Promise<MovementResponse[]> {
   const response = await fetch(`${API_URL}?idUsuario=${idUsuario}&startDate=${startDate}&endDate=${endDate}`)
@@ -15,6 +15,7 @@ export async function getMovements(idUsuario: number, startDate: string, endDate
 }
 
 export async function createMovement(data: MovementRequest): Promise<MovementResponse> {
+  console.log('Creando movimiento:', data)
   const response = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

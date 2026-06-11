@@ -3,15 +3,13 @@ import type { BudgetResponse } from '../models/responses/BudgetResponse'
 import type { BudgetRequest } from '../models/requests/BudgetRequest'
 import { getBudgets, createBudget, updateBudget, deleteBudget } from '../services/BudgetService'
 
-const ID_USUARIO = 1 // temporal hasta que haya login
-
 interface BudgetStore {
   budgets: BudgetResponse[]
   isLoading: boolean
   error: string | null
-  load: (month: number, year: number) => Promise<void>
-  add: (data: Omit<BudgetRequest, 'idUsuario'>) => Promise<void>
-  edit: (id: number, data: Omit<BudgetRequest, 'idUsuario'>) => Promise<void>
+  load: (month: number, year: number, idUsuario: number) => Promise<void>
+  add: (data: Omit<BudgetRequest, 'idUsuario'>, idUsuario: number) => Promise<void>
+  edit: (id: number, data: Omit<BudgetRequest, 'idUsuario'>, idUsuario: number) => Promise<void>
   remove: (id: number) => Promise<void>
 }
 
@@ -20,10 +18,10 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
   isLoading: false,
   error: null,
 
-  load: async (month, year) => {
+  load: async (month, year, idUsuario) => {
     try {
       set({ isLoading: true, error: null })
-      const data = await getBudgets(ID_USUARIO, month, year)
+      const data = await getBudgets(idUsuario, month, year)
       set({ budgets: data })
     } catch (error) {
       console.error('Error en BudgetStore:', error)
@@ -33,10 +31,10 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
     }
   },
 
-  add: async (data) => {
+  add: async (data, idUsuario) => {
     try {
       set({ error: null })
-      const newBudget = await createBudget({ ...data, idUsuario: ID_USUARIO })
+      const newBudget = await createBudget({ ...data, idUsuario })
       set(state => ({ budgets: [...state.budgets, newBudget] }))
     } catch (error) {
       console.error('Error en BudgetStore:', error)
@@ -44,10 +42,10 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
     }
   },
 
-  edit: async (id, data) => {
+  edit: async (id, data, idUsuario) => {
     try {
       set({ error: null })
-      const updated = await updateBudget(id, { ...data, idUsuario: ID_USUARIO })
+      const updated = await updateBudget(id, { ...data, idUsuario })
       set(state => ({ budgets: state.budgets.map(b => b.idBudget === id ? updated : b) }))
     } catch (error) {
       console.error('Error en BudgetStore:', error)

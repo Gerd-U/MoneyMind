@@ -3,13 +3,11 @@ import type { MovementResponse } from '../models/responses/MovementResponse'
 import type { MovementRequest } from '../models/requests/MovementRequest'
 import { getMovements, createMovement, deleteMovement } from '../services/MovementService'
 
-const ID_USUARIO = 1
-
 interface MovementStore {
   movements: MovementResponse[]
   isLoading: boolean
   error: string | null
-  load: (startDate: string, endDate: string) => Promise<void>
+  load: (startDate: string, endDate: string, idUsuario: number) => Promise<void>
   add: (data: MovementRequest) => Promise<void>
   remove: (id: number) => Promise<void>
 }
@@ -19,10 +17,10 @@ export const useMovementStore = create<MovementStore>((set) => ({
   isLoading: false,
   error: null,
 
-  load: async (startDate, endDate) => {
+  load: async (startDate, endDate, idUsuario) => {
     try {
       set({ isLoading: true, error: null })
-      const data = await getMovements(ID_USUARIO, startDate, endDate)
+      const data = await getMovements(idUsuario, startDate, endDate)
       set({ movements: data })
     } catch (error) {
       console.error('Error en MovementStore:', error)
@@ -35,7 +33,7 @@ export const useMovementStore = create<MovementStore>((set) => ({
   add: async (data) => {
     try {
       set({ error: null })
-      const newMovement = await createMovement({ ...data, idUsuario: ID_USUARIO })
+      const newMovement = await createMovement(data)
       set(state => ({ movements: [...state.movements, newMovement] }))
     } catch (error) {
       console.error('Error en MovementStore:', error)

@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { useMovementStore } from '../../store/MovementStore'
 import { useBudgetStore } from '../../store/BudgetStore'
 import { useCategoryStore } from '../../store/CategoryStore'
+import { useAuth } from '../../context/AuthContext'
 
 const formatMonto = (monto: number) =>
   new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC', maximumFractionDigits: 0 }).format(monto)
@@ -55,15 +56,17 @@ function PresupuestoBar({ categoryName, spent, limit }: {
 }
 
 export default function DashboardPage() {
+  const { idUsuario } = useAuth()
   const { movements, load: loadMovements } = useMovementStore()
   const { budgets, load: loadBudgets } = useBudgetStore()
   const { categories, load: loadCategories } = useCategoryStore()
 
   useEffect(() => {
-    void loadMovements(startDate, endDate)
-    void loadBudgets(now.getMonth() + 1, now.getFullYear())
+    if (!idUsuario) return
+    void loadMovements(startDate, endDate, idUsuario)
+    void loadBudgets(now.getMonth() + 1, now.getFullYear(), idUsuario)
     void loadCategories()
-  }, [loadMovements, loadBudgets, loadCategories])
+  }, [loadMovements, loadBudgets, loadCategories, idUsuario])
 
   const ingresos = movements
     .filter(m => categories.find(c => c.idCategory === m.idCategory)?.idMovementType === 1)
