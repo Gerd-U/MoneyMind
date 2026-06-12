@@ -27,7 +27,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   return (
     <aside
       style={{ backgroundColor: '#090F1A' }}
-      className="w-64 min-h-screen flex flex-col px-4 py-6"
+      className="w-64 h-full flex flex-col px-4 py-6"
     >
       {/* Logo */}
       <div className="mb-10 px-2 flex items-center justify-between">
