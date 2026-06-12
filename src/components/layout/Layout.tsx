@@ -61,6 +61,19 @@ export default function Layout() {
         <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
           <Outlet />
         </main>
+
+        {/* Footer */}
+        <footer
+          style={{
+            backgroundColor: "#090F1A",
+            borderTop: "1px solid #1e3a5f",
+          }}
+          className="px-8 py-4 flex items-center justify-center"
+        >
+          <p className="text-slate-500 text-xs text-center">
+            &copy; {new Date().getFullYear()} MoneyMind. Todos los derechos reservados.
+          </p>
+        </footer>
       </div>
     </div>
   );
