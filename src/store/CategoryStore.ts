@@ -15,7 +15,7 @@ interface CategoryStore {
   movementTypes: MovementTypeResponse[]
   isLoading: boolean
   error: string | null
-  load: () => Promise<void>
+  load: (idUsuario: number) => Promise<void>
   add: (category: CategoryRequest) => Promise<void>
   update: (id: number, data: CategoryRequest) => Promise<void>
   remove: (id: number) => Promise<void>
@@ -28,11 +28,11 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
   isLoading: false,
   error: null,
 
-  load: async () => {
+  load: async (idUsuario) => {
     try {
       set({ isLoading: true, error: null })
       const [categories, movementTypes] = await Promise.all([
-        getCategories(),
+        getCategories(idUsuario),
         getAllMovementTypes(),
       ])
       set({ categories, movementTypes })
@@ -88,6 +88,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
     try {
       set({ error: null })
       const updatedCategory = await updateCategory(id, {
+        idUsuario: category.idUsuario,
         idMovementType: category.idMovementType,
         categoryName: category.categoryName,
         description: category.description,

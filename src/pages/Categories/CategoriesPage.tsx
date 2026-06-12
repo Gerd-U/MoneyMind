@@ -4,6 +4,7 @@ import Modal from '../../components/common/Modal'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import type { CategoryResponse } from '../../models/responses/CategoryResponse'
+import { useAuth } from '../../context/AuthContext'
 
 export default function CategoriesPage() {
   const [filterMovementType, setFilterMovementType] = useState<'todos' | number>('todos')
@@ -16,11 +17,13 @@ export default function CategoriesPage() {
     active: true,
   })
 
+  const { idUsuario } = useAuth()
   const { categories, movementTypes, isLoading, error, load, add, update, remove, toggleStatus } = useCategoryStore()
 
   useEffect(() => {
-    void load()
-  }, [load])
+    if (!idUsuario) return
+    void load(idUsuario)
+  }, [load, idUsuario])
 
   const filteredCategories = categories.filter(c => {
     if (filterMovementType === 'todos') return true
@@ -28,15 +31,17 @@ export default function CategoriesPage() {
   })
 
   const handleSubmit = async () => {
-    if (!form.idMovementType || !form.categoryName.trim()) return
+    if (!idUsuario || !form.idMovementType || !form.categoryName.trim()) return
     if (editingCategory) {
       await update(editingCategory.idCategory, {
+        idUsuario,
         ...form,
         categoryName: form.categoryName.trim(),
         description: form.description.trim(),
       })
     } else {
       await add({
+        idUsuario,
         ...form,
         categoryName: form.categoryName.trim(),
         description: form.description.trim(),
@@ -89,7 +94,7 @@ export default function CategoriesPage() {
       </div>
 
       {/* Error no bloqueante */}
-      {error && <ErrorMessage message={error} onRetry={() => void load()} />}
+      {error && <ErrorMessage message={error} onRetry={() => idUsuario && void load(idUsuario)} />}
 
       {/* Filtros */}
       {!error && (
