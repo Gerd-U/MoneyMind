@@ -83,6 +83,16 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </button>
       </div>
 
+      {/* Footer */}
+      <div style={{ borderTop: '1px solid #1e3a5f' }} className="pt-4 mt-4">
+        <p className="text-slate-600 text-xs text-center">
+          &copy; {new Date().getFullYear()} MoneyMind
+        </p>
+        <p className="text-slate-600 text-xs text-center">
+          Todos los derechos reservados.
+        </p>
+      </div>
+
     </aside>
   )
 }
