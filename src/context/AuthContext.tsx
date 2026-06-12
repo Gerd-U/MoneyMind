@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { getUserByEmail } from '../services/UserService'
+import { config } from '../config'
 import type { UserResponse } from '../models/responses/UserResponse'
 
 interface AuthContextType {
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:8080/users/login', {
+      const response = await fetch(`${config.api.url}/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -64,8 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string
   ): Promise<boolean> => {
     try {
-      console.log('Registrando:', { firstName, lastName, email, password, active: true })
-      const response = await fetch('http://localhost:8080/users', {
+      const response = await fetch(`${config.api.url}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName, lastName, email, password, active: true }),
