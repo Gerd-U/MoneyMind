@@ -44,9 +44,10 @@ export default function MovementsPage() {
   }, [load, idUsuario, selectedMonth, selectedYear])
 
   useEffect(() => {
-    void loadCategories()
+    if (!idUsuario) return
+    void loadCategories(idUsuario)
     void loadPaymentMethods()
-  }, [loadCategories, loadPaymentMethods])
+  }, [loadCategories, loadPaymentMethods, idUsuario])
 
   const movimientosFiltrados = movements
     .filter(m => {

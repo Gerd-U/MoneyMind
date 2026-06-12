@@ -65,7 +65,7 @@ export default function DashboardPage() {
     if (!idUsuario) return
     void loadMovements(startDate, endDate, idUsuario)
     void loadBudgets(now.getMonth() + 1, now.getFullYear(), idUsuario)
-    void loadCategories()
+    void loadCategories(idUsuario)
   }, [loadMovements, loadBudgets, loadCategories, idUsuario])
 
   const ingresos = movements

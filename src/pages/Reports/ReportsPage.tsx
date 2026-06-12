@@ -32,7 +32,7 @@ export default function ReportsPage() {
   useEffect(() => {
     if (!idUsuario) return
     void loadMovements(startDate, endDate, idUsuario)
-    void loadCategories()
+    void loadCategories(idUsuario)
   }, [loadMovements, loadCategories, idUsuario, selectedMonth, selectedYear])
 
   const totalIngresos = movements

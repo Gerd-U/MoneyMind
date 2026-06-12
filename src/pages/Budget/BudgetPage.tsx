@@ -28,7 +28,7 @@ export default function BudgetPage() {
   useEffect(() => {
     if (!idUsuario) return
     void load(now.getMonth() + 1, now.getFullYear(), idUsuario)
-    void loadCategories()
+    void loadCategories(idUsuario)
   }, [load, loadCategories, idUsuario])
 
   const handleSubmit = async () => {

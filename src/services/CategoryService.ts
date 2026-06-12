@@ -4,8 +4,8 @@ import type { CategoryResponse } from '../models/responses/CategoryResponse'
 
 const API_URL = `${config.api.url}/categories`
 
-export async function getCategories(): Promise<CategoryResponse[]> {
-  const response = await fetch(API_URL)
+export async function getCategories(idUsuario: number): Promise<CategoryResponse[]> {
+  const response = await fetch(`${API_URL}?idUsuario=${encodeURIComponent(idUsuario)}`)
 
   if (!response.ok) {
     throw new Error('Error al obtener las categorías')
