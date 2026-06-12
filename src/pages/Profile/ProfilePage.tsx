@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { config } from '../../config'
 import Modal from '../../components/common/Modal'
 
 export default function ProfilePage() {
@@ -30,7 +31,7 @@ export default function ProfilePage() {
     setSaveError('')
     setSaveSuccess('')
     try {
-      const response = await fetch(`http://localhost:8080/users/${user.email}`, {
+      const response = await fetch(`${config.api.url}/users/${user.email}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -65,7 +66,7 @@ export default function ProfilePage() {
     }
     setIsSaving(true)
     try {
-      const response = await fetch(`http://localhost:8080/users/${user.email}`, {
+      const response = await fetch(`${config.api.url}/users/${user.email}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -98,16 +99,13 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col gap-8">
 
-      {/* Header */}
       <div>
         <h1 className="text-white text-2xl font-bold">Perfil</h1>
         <p className="text-slate-400 text-sm mt-1">Administrá la información de tu cuenta</p>
       </div>
 
-      {/* Profile card */}
       <div style={{ backgroundColor: '#101D32' }} className="rounded-xl p-8 flex flex-col gap-8 max-w-2xl">
 
-        {/* Avatar + name */}
         <div className="flex items-center gap-5">
           <div
             style={{ backgroundColor: '#3ecf8e20', color: '#3ecf8e' }}
@@ -127,10 +125,8 @@ export default function ProfilePage() {
           </span>
         </div>
 
-        {/* Divider */}
         <div style={{ borderColor: '#1e3a5f' }} className="border-t" />
 
-        {/* Success message */}
         {saveSuccess && (
           <div
             style={{ backgroundColor: '#3ecf8e20', border: '1px solid #3ecf8e' }}
@@ -140,7 +136,6 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="flex flex-col gap-1">
             <span className="text-slate-500 text-xs">Nombre</span>
@@ -162,10 +157,8 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Divider */}
         <div style={{ borderColor: '#1e3a5f' }} className="border-t" />
 
-        {/* Actions */}
         <div className="flex gap-3">
           <button
             onClick={() => { setIsEditingProfile(true); setSaveSuccess('') }}
@@ -185,7 +178,6 @@ export default function ProfilePage() {
 
       </div>
 
-      {/* Modal editar perfil */}
       <Modal isOpen={isEditingProfile} onClose={() => setIsEditingProfile(false)} title="Editar perfil">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
@@ -239,7 +231,6 @@ export default function ProfilePage() {
         </div>
       </Modal>
 
-      {/* Modal cambiar contraseña */}
       <Modal isOpen={isChangingPassword} onClose={() => setIsChangingPassword(false)} title="Cambiar contraseña">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
