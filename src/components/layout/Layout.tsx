@@ -6,10 +6,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div
-      style={{ backgroundColor: "#0D1520" }}
-      className="grid grid-cols-[256px_1fr] grid-rows-[1fr_auto] min-h-screen"
-    >
+    <div style={{ backgroundColor: "#0D1520" }} className="flex min-h-screen">
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div
@@ -18,19 +15,18 @@ export default function Layout() {
         />
       )}
 
-      {/* Sidebar — ocupa col 1, rows 1 y 2 */}
+      {/* Sidebar */}
       <div
         className={`
-          row-span-2
-          fixed z-30 lg:static lg:translate-x-0 transition-transform duration-300
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-        `}
+        fixed z-30 lg:static lg:translate-x-0 transition-transform duration-300
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
       >
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main — col 2, row 1 */}
-      <div className="flex flex-col min-w-0">
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar mobile */}
         <div
           style={{
@@ -62,24 +58,24 @@ export default function Layout() {
           </span>
         </div>
 
-        <main className="flex-1 p-4 lg:p-8">
+        {/* pb-10 para que el contenido no quede tapado por el footer */}
+        <main className="flex-1 p-4 lg:p-8 pb-16">
           <Outlet />
         </main>
       </div>
 
-      {/* Footer — col 2, row 2 */}
+      {/* Footer fixed al fondo */}
       <footer
         style={{
           backgroundColor: "#090F1A",
           borderTop: "1px solid #1e3a5f",
         }}
-        className="px-8 py-4 flex items-center justify-center"
+        className="fixed bottom-0 left-0 right-0 z-10 px-8 py-3 flex items-center justify-center"
       >
         <p className="text-slate-500 text-xs text-center">
           &copy; {new Date().getFullYear()} MoneyMind. Todos los derechos reservados.
         </p>
       </footer>
-
     </div>
   );
 }
