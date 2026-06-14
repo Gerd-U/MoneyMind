@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { config } from '../../config'
+import { updateUser } from '../../services/UserService'
 import Modal from '../../components/common/Modal'
 
 export default function ProfilePage() {
@@ -20,7 +20,6 @@ export default function ProfilePage() {
   })
 
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   })
@@ -36,18 +35,13 @@ export default function ProfilePage() {
     setSaveError('')
     setSaveSuccess('')
     try {
-      const response = await fetch(`${config.api.url}/users/${user.email}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: profileForm.firstName,
-          lastName: profileForm.lastName,
-          email: profileForm.email,
-          password: profileForm.currentPassword,
-          active: user.active,
-        }),
+      await updateUser(user.email, {
+        firstName: profileForm.firstName,
+        lastName: profileForm.lastName,
+        email: profileForm.email,
+        password: profileForm.currentPassword,
+        active: user.active,
       })
-      if (!response.ok) throw new Error()
       await login(profileForm.email, profileForm.currentPassword)
       setSaveSuccess('Perfil actualizado correctamente.')
       setIsEditingProfile(false)
@@ -72,21 +66,16 @@ export default function ProfilePage() {
     }
     setIsSaving(true)
     try {
-      const response = await fetch(`${config.api.url}/users/${user.email}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          password: passwordForm.newPassword,
-          active: user.active,
-        }),
+      await updateUser(user.email, {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        password: passwordForm.newPassword,
+        active: user.active,
       })
-      if (!response.ok) throw new Error()
       setSaveSuccess('Contraseña actualizada correctamente.')
       setIsChangingPassword(false)
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      setPasswordForm({ newPassword: '', confirmPassword: '' })
     } catch {
       setPasswordError('No se pudo actualizar la contraseña.')
     } finally {
