@@ -16,6 +16,7 @@ export default function ProfilePage() {
     firstName: user?.firstName ?? '',
     lastName: user?.lastName ?? '',
     email: user?.email ?? '',
+    currentPassword: '',
   })
 
   const [passwordForm, setPasswordForm] = useState({
@@ -27,6 +28,10 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     if (!user) return
+    if (!profileForm.currentPassword) {
+      setSaveError('Ingresá tu contraseña actual para guardar los cambios.')
+      return
+    }
     setIsSaving(true)
     setSaveError('')
     setSaveSuccess('')
@@ -38,14 +43,15 @@ export default function ProfilePage() {
           firstName: profileForm.firstName,
           lastName: profileForm.lastName,
           email: profileForm.email,
-          password: '',
+          password: profileForm.currentPassword,
           active: user.active,
         }),
       })
       if (!response.ok) throw new Error()
-      await login(profileForm.email, '')
+      await login(profileForm.email, profileForm.currentPassword)
       setSaveSuccess('Perfil actualizado correctamente.')
       setIsEditingProfile(false)
+      setProfileForm(prev => ({ ...prev, currentPassword: '' }))
     } catch {
       setSaveError('No se pudo actualizar el perfil.')
     } finally {
@@ -178,7 +184,11 @@ export default function ProfilePage() {
 
       </div>
 
-      <Modal isOpen={isEditingProfile} onClose={() => setIsEditingProfile(false)} title="Editar perfil">
+      <Modal
+        isOpen={isEditingProfile}
+        onClose={() => { setIsEditingProfile(false); setSaveError(''); setProfileForm(prev => ({ ...prev, currentPassword: '' })) }}
+        title="Editar perfil"
+      >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-slate-400 text-xs">Nombre</label>
@@ -210,6 +220,17 @@ export default function ProfilePage() {
               className="rounded-lg px-3 py-2.5 text-sm outline-none"
             />
           </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-slate-400 text-xs">Contraseña actual</label>
+            <input
+              type="password"
+              value={profileForm.currentPassword}
+              onChange={e => setProfileForm({ ...profileForm, currentPassword: e.target.value })}
+              placeholder="••••••••"
+              style={inputStyle}
+              className="rounded-lg px-3 py-2.5 text-sm outline-none placeholder-slate-600"
+            />
+          </div>
           {saveError && <span style={{ color: '#f07060' }} className="text-xs">{saveError}</span>}
           <div className="flex gap-3 pt-2">
             <button
@@ -221,7 +242,7 @@ export default function ProfilePage() {
               {isSaving ? 'Guardando...' : 'Guardar cambios'}
             </button>
             <button
-              onClick={() => setIsEditingProfile(false)}
+              onClick={() => { setIsEditingProfile(false); setSaveError(''); setProfileForm(prev => ({ ...prev, currentPassword: '' })) }}
               style={{ borderColor: '#1e3a5f' }}
               className="flex-1 py-2.5 rounded-lg text-sm font-medium border text-slate-400 hover:text-white transition-colors"
             >
